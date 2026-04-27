@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Morning Grace</title>
+
+  <!-- PWA meta -->
+  <meta name="theme-color" content="#FAFAF8" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Morning Grace" />
+  <meta name="description" content="Your daily companion for prayer, devotion, and gratitude." />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Tokens */
+    :root {
+      --bg:        #FAFAF8;
+      --bg-card:   #FFFFFF;
+      --bg-muted:  #F3F2EF;
+      --text:      #1A1917;
+      --text-2:    #6B6963;
+      --text-3:    #A09C97;
+      --border:    rgba(0,0,0,0.07);
+      --border-2:  rgba(0,0,0,0.13);
+      --r-sm:      10px;
+      --r-md:      16px;
+      --r-lg:      22px;
+      --r-pill:    50px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #111110;
+        --bg-card:  #1C1B19;
+        --bg-muted: #242320;
+        --text:     #F2F0EC;
+        --text-2:   #9B9892;
+        --text-3:   #6B6963;
+        --border:   rgba(255,255,255,0.07);
+        --border-2: rgba(255,255,255,0.13);
+      }
+    }
+
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* Desktop: center the phone card */
+    @media (min-width: 768px) {
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+    }
+
+    /* App shell */
+    .app {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    @media (min-width: 768px) {
+      .app {
+        width: 420px;
+        height: 780px;
+        border-radius: var(--r-lg);
+        border: 0.5px solid var(--border-2);
+        box-shadow: 0 24px 80px rgba(0,0,0,0.10), 0 4px 16px rgba(0,0,0,0.06);
+      }
+    }
+
+    /* Header */
+    .header {
+      flex-shrink: 0;
+      padding: calc(1.5rem + env(safe-area-inset-top, 0px)) 1.5rem 1.1rem;
+      background: var(--bg-card);
+      border-bottom: 0.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+    .header-icon { color: var(--text-2); margin-bottom: 2px; }
+    .header-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .header-date {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-3);
+    }
+
+    /* Tab bar */
+    .tab-bar {
+      flex-shrink: 0;
+      display: flex;
+      gap: 6px;
+      padding: 0.85rem 1rem;
+      background: var(--bg-card);
+      border-bottom: 0.5px solid var(--border);
+    }
+    .tab-pill {
+      flex: 1;
+      padding: 0.52rem 0.5rem;
+      border-radius: var(--r-pill);
+      border: 0.5px solid var(--border-2);
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11.5px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--text-2);
+      transition: all 0.2s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab-pill.active {
+      background: var(--text);
+      color: var(--bg-card);
+      border-color: var(--text);
+    }
+
+    /* Scroll area */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding: 1.1rem 1rem;
+      padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Panels */
+    .tab-panel { display: none; flex-direction: column; gap: 0.8rem; }
+    .tab-panel.active { display: flex; animation: rise 0.22s ease; }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(7px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-md);
+      padding: 1.3rem 1.2rem;
+    }
+    .card-accent {
+      border-left: 2.5px solid var(--text);
+      border-radius: 0 var(--r-md) var(--r-md) 0;
+      padding-left: 1.1rem;
+    }
+    .card-muted { background: var(--bg-muted); border-color: transparent; }
+
+    /* Section label */
+    .tag {
+      font-size: 9.5px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tag::after { content:''; flex:1; height:0.5px; background:var(--border-2); }
+
+    /* Prayer */
+    .prayer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--bg-muted);
+      border-radius: var(--r-pill);
+      padding: 3px 10px;
+      font-size: 10px;
+      color: var(--text-3);
+      margin-bottom: 1rem;
+    }
+    .prayer-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      line-height: 1.9;
+      font-style: italic;
+    }
+    .reflect {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 15px;
+      font-style: italic;
+      color: var(--text-2);
+      text-align: center;
+      line-height: 1.6;
+      padding: 0 0.5rem;
+      min-height: 1.5rem;
+    }
+
+    /* Devotional */
+    .verse-body {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      line-height: 1.85;
+      font-style: italic;
+    }
+    .verse-ref { font-size:11px; color:var(--text-2); text-align:right; margin-top:0.65rem; letter-spacing:0.05em; }
+    .devot-body { font-size:13.5px; font-weight:300; line-height:1.8; }
+
+    /* Journal */
+    .j-prompt {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1.45;
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      min-height: 108px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      resize: none;
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-sm);
+      padding: 0.8rem;
+      color: var(--text);
+      background: var(--bg-muted);
+      font-weight: 300;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    textarea:focus { outline: none; border-color: var(--text-3); }
+    textarea::placeholder { color: var(--text-3); }
+    .char-row { display:flex; justify-content:flex-end; margin-top:5px; }
+    .char-txt  { font-size:10px; color:var(--text-3); }
+
+    /* Entries */
+    .entry { padding:0.9rem 0; border-bottom:0.5px solid var(--border); display:flex; flex-direction:column; gap:5px; }
+    .entry:first-child { padding-top:0; }
+    .entry:last-child  { border-bottom:none; padding-bottom:0; }
+    .entry-meta-row { display:flex; align-items:center; gap:6px; }
+    .dot { width:5px; height:5px; border-radius:50%; background:var(--text-3); flex-shrink:0; }
+    .entry-meta { font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-3); }
+    .entry-text { font-size:13.5px; font-weight:300; line-height:1.65; padding-left:11px; }
+    .empty-msg { font-family:'Cormorant Garamond',serif; font-size:16px; font-style:italic; color:var(--text-3); text-align:center; padding:1.25rem 0; }
+
+    /* Buttons */
+    .btn-outline {
+      width:100%; padding:0.72rem; border-radius:var(--r-pill);
+      background:transparent; border:0.5px solid var(--border-2);
+      font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+      letter-spacing:0.07em; text-transform:uppercase; cursor:pointer;
+      color:var(--text); transition:background 0.18s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .btn-outline:hover { background:var(--bg-muted); }
+    .btn-solid {
+      width:100%; padding:0.72rem; border-radius:var(--r-pill);
+      background:var(--text); border:none;
+      font-family:'DM Sans',sans-serif; font-size:12px; font-weight:500;
+      letter-spacing:0.07em; text-transform:uppercase; cursor:pointer;
+      color:var(--bg-card); transition:opacity 0.18s; margin-top:0.85rem;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .btn-solid:active { opacity:0.75; }
+
+    /* Skeleton */
+    .ghost { height:14px; border-radius:4px; background:var(--border-2); margin-bottom:10px; animation:shimmer 1.4s ease-in-out infinite; }
+    .ghost.s { width:55%; }
+    @keyframes shimmer { 0%,100%{opacity:.3} 50%{opacity:.65} }
+
+    /* Toast */
+    .toast { font-size:11.5px; color:var(--text-2); text-align:center; letter-spacing:0.05em; height:1.3rem; opacity:0; transition:opacity 0.3s; margin-top:0.4rem; }
+    .toast.show { opacity:1; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ── Header ── -->
+  <div class="header">
+    <div class="header-icon">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M10 1v18M1 10h18M3.93 3.93l12.14 12.14M16.07 3.93L3.93 16.07" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-name">Morning Grace</div>
+    <div class="header-date" id="hdr-date"></div>
+  </div>
+
+  <!-- ── Tab bar ── -->
+  <div class="tab-bar">
+    <button class="tab-pill active" onclick="go('prayer',this)">Prayer</button>
+    <button class="tab-pill"        onclick="go('devotional',this)">Devotional</button>
+    <button class="tab-pill"        onclick="go('journal',this)">Journal</button>
+  </div>
+
+  <!-- ── Content ── -->
+  <div class="content">
+
+    <!-- Prayer -->
+    <div class="tab-panel active" id="tab-prayer">
+      <div class="card">
+        <div class="tag">Daily Prayer</div>
+        <div class="prayer-badge">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+            <circle cx="4.5" cy="4.5" r="3.5" stroke="currentColor" stroke-width=".8"/>
+            <path d="M4.5 2.5v2l1.2 1" stroke="currentColor" stroke-width=".8" stroke-linecap="round"/>
+          </svg>
+          <span id="badge-txt">Loading…</span>
+        </div>
+        <div class="prayer-body" id="prayer-body">
+          <div class="ghost"></div><div class="ghost"></div><div class="ghost s"></div>
+        </div>
+      </div>
+      <div class="reflect" id="reflect-body"></div>
+      <button class="btn-outline" onclick="refreshPrayer()">Generate New Prayer</button>
+    </div>
+
+    <!-- Devotional -->
+    <div class="tab-panel" id="tab-devotional">
+      <div class="card card-accent">
+        <div class="tag">Scripture</div>
+        <div class="verse-body" id="verse-body">
+          <div class="ghost"></div><div class="ghost s"></div>
+        </div>
+        <div class="verse-ref" id="verse-ref"></div>
+      </div>
+      <div class="card">
+        <div class="tag">Reflection</div>
+        <div class="devot-body" id="devot-body">
+          <div class="ghost"></div><div class="ghost"></div><div class="ghost s"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journal -->
+    <div class="tab-panel" id="tab-journal">
+      <div class="card card-muted" style="text-align:center;padding:1.4rem 1.2rem">
+        <div class="j-prompt" id="j-prompt">What are you grateful for today?</div>
+      </div>
+      <div class="card">
+        <div class="tag">Write</div>
+        <textarea id="j-input" placeholder="Write what's on your heart…" maxlength="500" oninput="upChar()"></textarea>
+        <div class="char-row"><span class="char-txt"><span id="char-ct">0</span> / 500</span></div>
+        <button class="btn-solid" onclick="saveEntry()">Save Entry</button>
+        <div class="toast" id="toast">Entry saved — well done.</div>
+      </div>
+      <div class="card">
+        <div class="tag">Your Entries</div>
+        <div id="entries-list"><div class="empty-msg">Your gratitude entries will live here.</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── Date setup ────────────────────────────────────────────
+const NOW       = new Date();
+const TODAY_KEY = NOW.toISOString().split('T')[0];
+
+document.getElementById('hdr-date').textContent =
+  NOW.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+const K = {
+  prayer:  'mg_prayer_'  + TODAY_KEY,
+  reflect: 'mg_reflect_' + TODAY_KEY,
+  devot:   'mg_devot_'   + TODAY_KEY,
+  prompt:  'mg_prompt_'  + TODAY_KEY,
+  journal: 'mg_journal_v1'
+};
+
+let devotLoaded = false, promptLoaded = false;
+
+// ── Tab switch ────────────────────────────────────────────
+function go(tab, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+  if (tab === 'devotional' && !devotLoaded) loadDevot();
+  if (tab === 'journal') { renderEntries(); if (!promptLoaded) loadPrompt(); }
+}
+
+// ── API proxy ─────────────────────────────────────────────
+async function ai(prompt, system) {
+  const r = await fetch('/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, system })
+  });
+  const d = await r.json();
+  return d.content[0].text.trim();
+}
+
+// ── Prayer ────────────────────────────────────────────────
+async function loadPrayer() {
+  const p = localStorage.getItem(K.prayer);
+  const r = localStorage.getItem(K.reflect);
+  if (p) { showPrayer(p, r || ''); return; }
+  await genPrayer();
+}
+
+function showPrayer(text, reflect) {
+  document.getElementById('prayer-body').textContent   = text;
+  document.getElementById('reflect-body').textContent  = reflect;
+  document.getElementById('badge-txt').textContent     = 'Daily prayer — refreshes at midnight';
+}
+
+async function genPrayer() {
+  document.getElementById('badge-txt').textContent = 'Preparing your prayer…';
+  document.getElementById('prayer-body').innerHTML =
+    '<div class="ghost"></div><div class="ghost"></div><div class="ghost s"></div>';
+  document.getElementById('reflect-body').textContent = '';
+  const day = NOW.toLocaleDateString('en-US',{weekday:'long'});
+  const md  = NOW.toLocaleDateString('en-US',{month:'long',day:'numeric'});
+  try {
+    const [p, r] = await Promise.all([
+      ai(`Write a sincere, personal Christian morning prayer for ${day}, ${md}. 75-95 words. Begin directly with the prayer. No title or preamble.`,
+         'You write warm, specific daily prayers. Avoid clichés.'),
+      ai('One short, poetic contemplative prompt to sit with after morning prayer. Max 10 words. No quotation marks.',
+         'You write brief, poetic reflection prompts.')
+    ]);
+    localStorage.setItem(K.prayer,  p);
+    localStorage.setItem(K.reflect, r);
+    showPrayer(p, r);
+  } catch(e) {
+    showPrayer(
+      'Lord, as this day begins, quiet the noise within us. May we move through these hours with intention — loving well, speaking truth, and trusting You with what we cannot control. Whatever today holds, let it not shake our foundation. You are faithful. We are grateful. Amen.',
+      'Take one breath before you carry this into your day.'
+    );
+  }
+}
+
+async function refreshPrayer() {
+  localStorage.removeItem(K.prayer);
+  localStorage.removeItem(K.reflect);
+  await genPrayer();
+}
+
+// ── Devotional ────────────────────────────────────────────
+async function loadDevot() {
+  const cached = localStorage.getItem(K.devot);
+  if (cached) { renderDevot(JSON.parse(cached)); devotLoaded = true; return; }
+  const day = NOW.toLocaleDateString('en-US',{weekday:'long'});
+  try {
+    const raw   = await ai(
+      `Daily devotional for ${day}. Return ONLY JSON: {"verse":"text","reference":"Book Ch:V","devotional":"90-110 word reflection on the verse for everyday life"}`,
+      'Return pure valid JSON only. No markdown. No extra text.'
+    );
+    const clean = raw.replace(/^```[a-z]*\n?/,'').replace(/```$/,'').trim();
+    const data  = JSON.parse(clean);
+    localStorage.setItem(K.devot, JSON.stringify(data));
+    renderDevot(data);
+    devotLoaded = true;
+  } catch(e) {
+    renderDevot({
+      verse:      'Come to me, all you who are weary and burdened, and I will give you rest.',
+      reference:  'Matthew 11:28',
+      devotional: 'There is an invitation in these words that never expires. On days when the weight feels too much — the to-do list too long, the expectations too high, the energy too thin — this verse is a quiet reminder that rest is not earned, it is offered. Jesus does not say "clean yourself up first." He says come as you are. That is the kind of grace worth building a life on.'
+    });
+    devotLoaded = true;
+  }
+}
+
+function renderDevot(d) {
+  document.getElementById('verse-body').textContent = '\u201C' + d.verse + '\u201D';
+  document.getElementById('verse-ref').textContent  = '\u2014 ' + d.reference;
+  document.getElementById('devot-body').textContent = d.devotional;
+}
+
+// ── Journal prompt ────────────────────────────────────────
+async function loadPrompt() {
+  const cached = localStorage.getItem(K.prompt);
+  if (cached) { document.getElementById('j-prompt').textContent = cached; promptLoaded = true; return; }
+  try {
+    const t = await ai('One beautiful gratitude journal prompt. Max 9 words. Just the question, no quotes.',
+                       'Short, poetic, personal journaling prompts.');
+    localStorage.setItem(K.prompt, t);
+    document.getElementById('j-prompt').textContent = t;
+    promptLoaded = true;
+  } catch(e) {}
+}
+
+// ── Journal CRUD ──────────────────────────────────────────
+function upChar() {
+  document.getElementById('char-ct').textContent =
+    document.getElementById('j-input').value.length;
+}
+
+function saveEntry() {
+  const input = document.getElementById('j-input');
+  const text  = input.value.trim();
+  if (!text) return;
+  const entries = getEntries();
+  entries.unshift({
+    id:   Date.now(),
+    text,
+    date: NOW.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}),
+    time: NOW.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})
+  });
+  localStorage.setItem(K.journal, JSON.stringify(entries));
+  input.value = '';
+  document.getElementById('char-ct').textContent = '0';
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+  renderEntries();
+}
+
+function getEntries() {
+  try { return JSON.parse(localStorage.getItem(K.journal) || '[]'); }
+  catch(e) { return []; }
+}
+
+function renderEntries() {
+  const entries = getEntries();
+  const list    = document.getElementById('entries-list');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-msg">Your gratitude entries will live here.</div>';
+    return;
+  }
+  list.innerHTML = entries.map(e => `
+    <div class="entry">
+      <div class="entry-meta-row">
+        <div class="dot"></div>
+        <div class="entry-meta">${e.date} &middot; ${e.time}</div>
+      </div>
+      <div class="entry-text">${e.text}</div>
+    </div>`).join('');
+}
+
+// ── Boot ──────────────────────────────────────────────────
+loadPrayer();
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
