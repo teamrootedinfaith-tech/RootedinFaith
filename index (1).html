@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Morning Grace</title>
+  <meta name="theme-color" content="#FAFAF8" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Morning Grace" />
+  <meta name="description" content="Your daily companion for prayer, devotion, and gratitude." />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{--bg:#FAFAF8;--bg-card:#FFFFFF;--bg-muted:#F3F2EF;--text:#1A1917;--text-2:#6B6963;--text-3:#A09C97;--border:rgba(0,0,0,0.07);--border-2:rgba(0,0,0,0.13);--danger:#b83232;--r-sm:10px;--r-md:16px;--r-lg:22px;--r-pill:50px}
+    @media(prefers-color-scheme:dark){:root{--bg:#111110;--bg-card:#1C1B19;--bg-muted:#242320;--text:#F2F0EC;--text-2:#9B9892;--text-3:#6B6963;--border:rgba(255,255,255,0.07);--border-2:rgba(255,255,255,0.13)}}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:100%}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh}
+    @media(min-width:768px){body{display:flex;align-items:center;justify-content:center;padding:2rem}}
+
+    /* Loading screen */
+    .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:100;transition:opacity 0.3s}
+    .loading-screen.hidden{opacity:0;pointer-events:none}
+    .loading-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;color:var(--text);letter-spacing:.02em}
+    .loading-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+    .loading-dots{display:flex;gap:5px;margin-top:.25rem}
+    .loading-dot{width:4px;height:4px;border-radius:50%;background:var(--text-3);animation:dot-pulse 1.2s ease-in-out infinite}
+    .loading-dot:nth-child(2){animation-delay:.2s}
+    .loading-dot:nth-child(3){animation-delay:.4s}
+    @keyframes dot-pulse{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+    /* Auth */
+    .auth-wrap{width:100%;min-height:100vh;min-height:100dvh;display:none;align-items:center;justify-content:center;padding:1.5rem;padding-top:calc(1.5rem + env(safe-area-inset-top,0px))}
+    .auth-wrap.visible{display:flex}
+    @media(min-width:768px){.auth-wrap{min-height:unset;width:420px;padding:0}}
+    .auth-card{width:100%;max-width:380px;background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:var(--r-lg);padding:2.25rem 1.75rem 2rem;display:flex;flex-direction:column;gap:1.4rem}
+    .auth-logo{display:flex;flex-direction:column;align-items:center;gap:6px;padding-bottom:.25rem}
+    .auth-logo-icon{color:var(--text-2);margin-bottom:4px}
+    .auth-logo-name{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;letter-spacing:.02em;line-height:1}
+    .auth-logo-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+
+    /* SSO primary button */
+    .sso-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:.85rem;border-radius:var(--r-pill);background:var(--text);border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:.04em;cursor:pointer;color:var(--bg-card);text-decoration:none;transition:opacity .18s;-webkit-tap-highlight-color:transparent}
+    .sso-btn:active{opacity:.75}
+    .divider{display:flex;align-items:center;gap:10px;color:var(--text-3);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+    .divider::before,.divider::after{content:'';flex:1;height:0.5px;background:var(--border-2)}
+
+    /* Manual auth toggle */
+    .auth-toggle{display:flex;background:var(--bg-muted);border-radius:var(--r-pill);padding:3px;gap:3px}
+    .auth-toggle-btn{flex:1;padding:.5rem;border-radius:var(--r-pill);border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:var(--text-2);transition:all .2s;-webkit-tap-highlight-color:transparent}
+    .auth-toggle-btn.active{background:var(--bg-card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    .auth-fields{display:flex;flex-direction:column;gap:.65rem}
+    .name-row{display:flex;gap:.65rem}
+    .auth-input{width:100%;padding:.82rem 1rem;border:0.5px solid var(--border-2);border-radius:var(--r-sm);background:var(--bg-muted);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);-webkit-appearance:none;transition:border-color .2s}
+    .auth-input:focus{outline:none;border-color:var(--text-3)}
+    .auth-input::placeholder{color:var(--text-3)}
+    .auth-msg{font-size:12px;text-align:center;min-height:1.2rem;letter-spacing:.02em;line-height:1.5;color:var(--danger)}
+    .auth-msg.ok{color:var(--text-2)}
+    .forgot-link{font-size:12px;color:var(--text-2);text-align:right;cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+    .auth-footer{font-size:11px;color:var(--text-3);text-align:center;line-height:1.6}
+    .auth-footer a{color:var(--text-2);text-decoration:underline;text-underline-offset:2px}
+    .btn-solid{width:100%;padding:.75rem;border-radius:var(--r-pill);background:var(--text);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--bg-card);transition:opacity .18s;-webkit-tap-highlight-color:transparent}
+    .btn-solid:disabled{opacity:.5;cursor:not-allowed}
+
+    /* Expired screen */
+    .expired-wrap{width:100%;min-height:100vh;min-height:100dvh;display:none;align-items:center;justify-content:center;padding:1.5rem}
+    .expired-wrap.visible{display:flex}
+    @media(min-width:768px){.expired-wrap{min-height:unset;width:420px;padding:0}}
+    .expired-card{width:100%;max-width:380px;background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:var(--r-lg);padding:2.5rem 1.75rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1.25rem}
+    .expired-icon{color:var(--text-3)}
+    .expired-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500}
+    .expired-body{font-size:13.5px;font-weight:300;color:var(--text-2);line-height:1.7}
+    .btn-renew{display:block;width:100%;padding:.75rem;border-radius:var(--r-pill);background:var(--text);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--bg-card);text-decoration:none;text-align:center}
+    .expired-signout{font-size:11px;color:var(--text-3);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;font-family:'DM Sans',sans-serif;margin-top:.25rem}
+
+    /* App */
+    .app{width:100%;height:100vh;height:100dvh;background:var(--bg-card);display:none;flex-direction:column;overflow:hidden}
+    .app.visible{display:flex}
+    @media(min-width:768px){.app{width:420px;height:780px;border-radius:var(--r-lg);border:0.5px solid var(--border-2);box-shadow:0 24px 80px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06)}}
+    .header{flex-shrink:0;padding:calc(1.25rem + env(safe-area-inset-top,0px)) 1.25rem 1rem;background:var(--bg-card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:.75rem}
+    .header-center{flex:1;display:flex;flex-direction:column;align-items:center}
+    .header-name{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;letter-spacing:.02em;line-height:1}
+    .header-date{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-top:3px}
+    .header-icon{color:var(--text-2);flex-shrink:0}
+    .logout-btn{background:none;border:0.5px solid var(--border-2);border-radius:var(--r-pill);padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:background .18s}
+    .logout-btn:hover{background:var(--bg-muted)}
+    .tab-bar{flex-shrink:0;display:flex;gap:6px;padding:.75rem 1rem;background:var(--bg-card);border-bottom:0.5px solid var(--border)}
+    .tab-pill{flex:1;padding:.52rem .5rem;border-radius:var(--r-pill);border:0.5px solid var(--border-2);background:transparent;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:var(--text-2);transition:all .2s;-webkit-tap-highlight-color:transparent}
+    .tab-pill.active{background:var(--text);color:var(--bg-card);border-color:var(--text)}
+    .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:1.1rem 1rem;padding-bottom:calc(1.5rem + env(safe-area-inset-bottom,0px))}
+    .tab-panel{display:none;flex-direction:column;gap:.8rem}
+    .tab-panel.active{display:flex;animation:rise .22s ease}
+    @keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+    .card{background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:var(--r-md);padding:1.3rem 1.2rem}
+    .card-accent{border-left:2.5px solid var(--text);border-radius:0 var(--r-md) var(--r-md) 0;padding-left:1.1rem}
+    .card-muted{background:var(--bg-muted);border-color:transparent}
+    .tag{font-size:9.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:.9rem;display:flex;align-items:center;gap:8px}
+    .tag::after{content:'';flex:1;height:0.5px;background:var(--border-2)}
+    .prayer-badge{display:inline-flex;align-items:center;gap:5px;background:var(--bg-muted);border-radius:var(--r-pill);padding:3px 10px;font-size:10px;color:var(--text-3);margin-bottom:1rem}
+    .prayer-body{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.9;font-style:italic}
+    .reflect{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:var(--text-2);text-align:center;line-height:1.6;padding:0 .5rem;min-height:1.5rem}
+    .verse-body{font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.85;font-style:italic}
+    .verse-ref{font-size:11px;color:var(--text-2);text-align:right;margin-top:.65rem;letter-spacing:.05em}
+    .devot-body{font-size:13.5px;font-weight:300;line-height:1.8}
+    .j-prompt{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;line-height:1.45;text-align:center}
+    textarea{width:100%;min-height:108px;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.7;resize:none;border:0.5px solid var(--border-2);border-radius:var(--r-sm);padding:.8rem;color:var(--text);background:var(--bg-muted);font-weight:300;transition:border-color .2s;-webkit-appearance:none}
+    textarea:focus{outline:none;border-color:var(--text-3)}
+    textarea::placeholder{color:var(--text-3)}
+    .char-row{display:flex;justify-content:flex-end;margin-top:5px}
+    .char-txt{font-size:10px;color:var(--text-3)}
+    .streak-wrap{text-align:center}
+    .streak-badge{display:inline-flex;align-items:center;gap:6px;background:var(--bg-muted);border-radius:var(--r-pill);padding:5px 14px;font-size:11px;color:var(--text-2)}
+    .entries-count{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:.5rem}
+    .entry{padding:.9rem 0;border-bottom:0.5px solid var(--border);display:flex;flex-direction:column;gap:5px}
+    .entry:first-of-type{padding-top:0}
+    .entry:last-child{border-bottom:none;padding-bottom:0}
+    .entry-meta-row{display:flex;align-items:center;gap:6px}
+    .dot{width:5px;height:5px;border-radius:50%;background:var(--text-3);flex-shrink:0}
+    .entry-meta{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
+    .entry-text{font-size:13.5px;font-weight:300;line-height:1.65;padding-left:11px}
+    .empty-msg{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-3);text-align:center;padding:1.25rem 0}
+    .btn-outline{width:100%;padding:.72rem;border-radius:var(--r-pill);background:transparent;border:0.5px solid var(--border-2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--text);transition:background .18s;-webkit-tap-highlight-color:transparent}
+    .btn-outline:hover{background:var(--bg-muted)}
+    .save-btn{width:100%;padding:.75rem;border-radius:var(--r-pill);background:var(--text);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--bg-card);transition:opacity .18s;margin-top:.85rem;-webkit-tap-highlight-color:transparent}
+    .save-btn:disabled{opacity:.5;cursor:not-allowed}
+    .ghost{height:14px;border-radius:4px;background:var(--border-2);margin-bottom:10px;animation:shimmer 1.4s ease-in-out infinite}
+    .ghost.s{width:55%}
+    @keyframes shimmer{0%,100%{opacity:.3}50%{opacity:.65}}
+    .toast{font-size:11.5px;color:var(--text-2);text-align:center;height:1.3rem;opacity:0;transition:opacity .3s;margin-top:.4rem}
+    .toast.show{opacity:1}
+  </style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-screen" id="loading">
+  <div class="auth-logo-icon" style="color:#A09C97">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <path d="M11 1v20M1 11h20M4.5 4.5l13 13M17.5 4.5l-13 13" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="loading-logo">Morning Grace</div>
+  <div class="loading-sub">Members only</div>
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+</div>
+
+<!-- Auth -->
+<div class="auth-wrap" id="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+          <path d="M11 1v20M1 11h20M4.5 4.5l13 13M17.5 4.5l-13 13" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="auth-logo-name">Morning Grace</div>
+      <div class="auth-logo-sub">Members only</div>
+    </div>
+
+    <!-- Primary: go back to Shopify to login via SSO -->
+    <a class="sso-btn" href="YOUR_SHOPIFY_STORE_URL/account/login?return_to=/pages/morning-grace">
+      <svg width="16" height="16" viewBox="0 0 22 22" fill="none">
+        <path d="M11 1v20M1 11h20M4.5 4.5l13 13M17.5 4.5l-13 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      Access via Membership
+    </a>
+
+    <div class="divider">or</div>
+
+    <!-- Fallback: manual email/password for returning users -->
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div class="auth-toggle">
+        <button class="auth-toggle-btn active" id="tog-login"  onclick="setMode('login')">Sign In</button>
+        <button class="auth-toggle-btn"        id="tog-signup" onclick="setMode('signup')">Create Account</button>
+      </div>
+      <div class="auth-fields">
+        <div class="name-row" id="name-row" style="display:none">
+          <input class="auth-input" type="text" id="a-first" placeholder="First name" />
+          <input class="auth-input" type="text" id="a-last"  placeholder="Last name" />
+        </div>
+        <input class="auth-input" type="email"    id="a-email" placeholder="Membership email" autocomplete="email" />
+        <input class="auth-input" type="password" id="a-pass"  placeholder="Password" autocomplete="current-password" />
+        <div class="auth-msg" id="auth-msg"></div>
+        <button class="btn-solid" id="auth-btn" onclick="handleAuth()">Sign In</button>
+        <button class="forgot-link" id="forgot-btn" onclick="handleForgot()">Forgot password?</button>
+      </div>
+    </div>
+
+    <div class="auth-footer">
+      Access requires an active membership.<br/>
+      <a href="YOUR_SHOPIFY_STORE_URL" target="_blank">Purchase a membership →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Expired -->
+<div class="expired-wrap" id="expired-wrap">
+  <div class="expired-card">
+    <div class="expired-icon">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1"/>
+        <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="expired-title">Membership Expired</div>
+    <div class="expired-body">Your membership has ended. Renew to continue your daily prayer, devotional, and gratitude practice.</div>
+    <a class="btn-renew" href="YOUR_SHOPIFY_STORE_URL" target="_blank">Renew Membership</a>
+    <button class="expired-signout" onclick="handleLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- App -->
+<div class="app" id="app">
+  <div class="header">
+    <div class="header-icon">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <path d="M10 1v18M1 10h18M3.93 3.93l12.14 12.14M16.07 3.93L3.93 16.07" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="header-center">
+      <div class="header-name">Morning Grace</div>
+      <div class="header-date" id="hdr-date"></div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-pill active" onclick="go('prayer',this)">Prayer</button>
+    <button class="tab-pill"        onclick="go('devotional',this)">Devotional</button>
+    <button class="tab-pill"        onclick="go('journal',this)">Journal</button>
+  </div>
+  <div class="content">
+    <div class="tab-panel active" id="tab-prayer">
+      <div class="card">
+        <div class="tag">Daily Prayer</div>
+        <div class="prayer-badge">
+          <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><circle cx="4.5" cy="4.5" r="3.5" stroke="currentColor" stroke-width=".8"/><path d="M4.5 2.5v2l1.2 1" stroke="currentColor" stroke-width=".8" stroke-linecap="round"/></svg>
+          <span id="badge-txt">Loading…</span>
+        </div>
+        <div class="prayer-body" id="prayer-body"><div class="ghost"></div><div class="ghost"></div><div class="ghost s"></div></div>
+      </div>
+      <div class="reflect" id="reflect-body"></div>
+      <button class="btn-outline" onclick="refreshPrayer()">Generate New Prayer</button>
+    </div>
+    <div class="tab-panel" id="tab-devotional">
+      <div class="card card-accent">
+        <div class="tag">Scripture</div>
+        <div class="verse-body" id="verse-body"><div class="ghost"></div><div class="ghost s"></div></div>
+        <div class="verse-ref" id="verse-ref"></div>
+      </div>
+      <div class="card">
+        <div class="tag">Reflection</div>
+        <div class="devot-body" id="devot-body"><div class="ghost"></div><div class="ghost"></div><div class="ghost s"></div></div>
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-journal">
+      <div class="card card-muted" style="text-align:center;padding:1.4rem 1.2rem">
+        <div class="j-prompt" id="j-prompt">What are you grateful for today?</div>
+      </div>
+      <div class="streak-wrap" id="streak-wrap" style="display:none">
+        <div class="streak-badge" id="streak-badge"></div>
+      </div>
+      <div class="card">
+        <div class="tag">Write</div>
+        <textarea id="j-input" placeholder="Write what's on your heart…" maxlength="500" oninput="upChar()"></textarea>
+        <div class="char-row"><span class="char-txt"><span id="char-ct">0</span> / 500</span></div>
+        <button class="save-btn" id="save-btn" onclick="saveEntry()">Save Entry</button>
+        <div class="toast" id="toast">Entry saved — well done.</div>
+      </div>
+      <div class="card">
+        <div class="tag">Your Entries</div>
+        <div id="entries-list"><div class="empty-msg">Your gratitude entries will live here.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const{createClient}=supabase;
+let sb=null,currentUser=null,authMode='login',devotLoaded=false,promptLoaded=false;
+const NOW=new Date(),TODAY_KEY=NOW.toISOString().split('T')[0];
+document.getElementById('hdr-date').textContent=NOW.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+const K={prayer:'mg_prayer_'+TODAY_KEY,reflect:'mg_reflect_'+TODAY_KEY,devot:'mg_devot_'+TODAY_KEY,prompt:'mg_prompt_'+TODAY_KEY};
+
+async function initSupabase(){
+  const r=await fetch('/api/config');
+  const{supabaseUrl,supabaseKey}=await r.json();
+  sb=createClient(supabaseUrl,supabaseKey);
+}
+
+function hideLoading(){document.getElementById('loading').classList.add('hidden');}
+
+// ── SSO auto-login from Shopify token ─────────────────────
+async function handleSSOToken(token){
+  try{
+    const r=await fetch('/api/verify-token',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({token})
+    });
+    const data=await r.json();
+    if(!data.actionLink) throw new Error(data.error||'Invalid token.');
+
+    // Use Supabase magic link to sign the user in automatically
+    const{error}=await sb.auth.verifyOtp({
+      token_hash: new URL(data.actionLink).searchParams.get('token'),
+      type:'magiclink'
+    });
+    if(error) throw error;
+
+    const{data:{user}}=await sb.auth.getUser();
+    currentUser=user;
+
+    // Clean the token from the URL (no need to expose it)
+    window.history.replaceState({},'',window.location.pathname);
+    showApp();
+  }catch(e){
+    console.error('SSO error:',e);
+    window.history.replaceState({},'',window.location.pathname);
+    hideLoading();
+    showAuth();
+    showMsg('Your login link expired. Please click Access via Membership again.');
+  }
+}
+
+// ── Manual auth ───────────────────────────────────────────
+function setMode(mode){
+  authMode=mode;
+  document.getElementById('tog-login').classList.toggle('active',mode==='login');
+  document.getElementById('tog-signup').classList.toggle('active',mode==='signup');
+  document.getElementById('name-row').style.display=mode==='signup'?'flex':'none';
+  document.getElementById('forgot-btn').style.display=mode==='login'?'block':'none';
+  document.getElementById('auth-btn').textContent=mode==='login'?'Sign In':'Create Account';
+  document.getElementById('auth-msg').textContent='';
+  document.getElementById('a-pass').autocomplete=mode==='login'?'current-password':'new-password';
+}
+
+function showMsg(text,ok=false){
+  const el=document.getElementById('auth-msg');
+  el.textContent=text;el.className='auth-msg'+(ok?' ok':'');
+}
+
+async function handleAuth(){
+  const email=document.getElementById('a-email').value.trim();
+  const pass=document.getElementById('a-pass').value;
+  if(!email||!pass){showMsg('Please enter your email and password.');return;}
+  const btn=document.getElementById('auth-btn');
+  btn.disabled=true;btn.textContent=authMode==='login'?'Signing in…':'Creating account…';showMsg('');
+  try{
+    let result;
+    if(authMode==='login'){
+      result=await sb.auth.signInWithPassword({email,password:pass});
+    }else{
+      const first=document.getElementById('a-first').value.trim();
+      const last=document.getElementById('a-last').value.trim();
+      result=await sb.auth.signUp({email,password:pass,options:{data:{first_name:first,last_name:last}}});
+      if(!result.error&&result.data.user&&!result.data.session){
+        showMsg('Check your email to confirm your account, then sign in.',true);
+        btn.disabled=false;btn.textContent='Create Account';return;
+      }
+    }
+    if(result.error)throw result.error;
+    currentUser=result.data.user;
+    showApp();
+  }catch(e){showMsg(e.message||'Something went wrong.');}
+  finally{btn.disabled=false;btn.textContent=authMode==='login'?'Sign In':'Create Account';}
+}
+
+async function handleForgot(){
+  const email=document.getElementById('a-email').value.trim();
+  if(!email){showMsg('Enter your email above first.');return;}
+  await sb.auth.resetPasswordForEmail(email);
+  showMsg('Password reset email sent — check your inbox.',true);
+}
+
+async function handleLogout(){
+  await sb.auth.signOut();currentUser=null;
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('expired-wrap').classList.remove('visible');
+  showAuth();
+}
+
+function showAuth(){document.getElementById('auth-wrap').classList.add('visible');}
+
+function showExpired(){
+  document.getElementById('auth-wrap').classList.remove('visible');
+  document.getElementById('expired-wrap').classList.add('visible');
+  document.getElementById('app').classList.remove('visible');
+}
+
+function showApp(){
+  hideLoading();
+  document.getElementById('auth-wrap').classList.remove('visible');
+  document.getElementById('expired-wrap').classList.remove('visible');
+  document.getElementById('app').classList.add('visible');
+  loadPrayer();renderEntries();
+}
+
+// ── Tabs ──────────────────────────────────────────────────
+function go(tab,btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-pill').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');btn.classList.add('active');
+  if(tab==='devotional'&&!devotLoaded)loadDevot();
+  if(tab==='journal'){renderEntries();if(!promptLoaded)loadPrompt();}
+}
+
+// ── AI ────────────────────────────────────────────────────
+async function ai(prompt,system){
+  const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt,system})});
+  const d=await r.json();return d.content[0].text.trim();
+}
+
+// ── Prayer ────────────────────────────────────────────────
+async function loadPrayer(){
+  const p=localStorage.getItem(K.prayer),r=localStorage.getItem(K.reflect);
+  if(p){showPrayer(p,r||'');return;}await genPrayer();
+}
+function showPrayer(text,reflect){
+  document.getElementById('prayer-body').textContent=text;
+  document.getElementById('reflect-body').textContent=reflect;
+  document.getElementById('badge-txt').textContent='Daily prayer — refreshes at midnight';
+}
+async function genPrayer(){
+  document.getElementById('badge-txt').textContent='Preparing your prayer…';
+  document.getElementById('prayer-body').innerHTML='<div class="ghost"></div><div class="ghost"></div><div class="ghost s"></div>';
+  document.getElementById('reflect-body').textContent='';
+  const day=NOW.toLocaleDateString('en-US',{weekday:'long'});
+  const md=NOW.toLocaleDateString('en-US',{month:'long',day:'numeric'});
+  try{
+    const[p,r]=await Promise.all([
+      ai(`Write a sincere, personal Christian morning prayer for ${day}, ${md}. 75-95 words. Begin directly with the prayer. No title or preamble.`,'You write warm, specific daily prayers. Avoid clichés.'),
+      ai('One short, poetic contemplative prompt after morning prayer. Max 10 words. No quotation marks.','You write brief, poetic reflection prompts.')
+    ]);
+    localStorage.setItem(K.prayer,p);localStorage.setItem(K.reflect,r);showPrayer(p,r);
+  }catch(e){showPrayer('Lord, as this day begins, quiet the noise within us. May we move through these hours with intention — loving well, speaking truth, and trusting You with what we cannot control. You are faithful. We are grateful. Amen.','Take one breath before you carry this into your day.');}
+}
+async function refreshPrayer(){localStorage.removeItem(K.prayer);localStorage.removeItem(K.reflect);await genPrayer();}
+
+// ── Devotional ────────────────────────────────────────────
+async function loadDevot(){
+  const cached=localStorage.getItem(K.devot);
+  if(cached){renderDevot(JSON.parse(cached));devotLoaded=true;return;}
+  const day=NOW.toLocaleDateString('en-US',{weekday:'long'});
+  try{
+    const raw=await ai(`Daily devotional for ${day}. Return ONLY JSON: {"verse":"text","reference":"Book Ch:V","devotional":"90-110 word reflection"}`,'Return pure valid JSON only. No markdown. No extra text.');
+    const clean=raw.replace(/^```[a-z]*\n?/,'').replace(/```$/,'').trim();
+    const data=JSON.parse(clean);localStorage.setItem(K.devot,JSON.stringify(data));renderDevot(data);devotLoaded=true;
+  }catch(e){
+    renderDevot({verse:'Come to me, all you who are weary and burdened, and I will give you rest.',reference:'Matthew 11:28',
+      devotional:'There is an invitation in these words that never expires. On days when the weight feels too much, this verse is a quiet reminder that rest is not earned — it is offered. Jesus does not say "clean yourself up first." He says come as you are. That is grace worth building a life on.'});devotLoaded=true;
+  }
+}
+function renderDevot(d){
+  document.getElementById('verse-body').textContent='\u201C'+d.verse+'\u201D';
+  document.getElementById('verse-ref').textContent='\u2014 '+d.reference;
+  document.getElementById('devot-body').textContent=d.devotional;
+}
+
+// ── Journal prompt ────────────────────────────────────────
+async function loadPrompt(){
+  if(promptLoaded)return;
+  const cached=localStorage.getItem(K.prompt);
+  if(cached){document.getElementById('j-prompt').textContent=cached;promptLoaded=true;return;}
+  try{
+    const t=await ai('One beautiful gratitude journal prompt. Max 9 words. Just the question, no quotes.','Short, poetic journaling prompts.');
+    localStorage.setItem(K.prompt,t);document.getElementById('j-prompt').textContent=t;promptLoaded=true;
+  }catch(e){}
+}
+
+// ── Journal ───────────────────────────────────────────────
+function upChar(){document.getElementById('char-ct').textContent=document.getElementById('j-input').value.length;}
+async function saveEntry(){
+  const input=document.getElementById('j-input'),text=input.value.trim();
+  if(!text||!currentUser)return;
+  const btn=document.getElementById('save-btn');btn.disabled=true;
+  const{error}=await sb.from('journal_entries').insert({
+    user_id:currentUser.id,text,
+    date_label:NOW.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}),
+    time_label:NOW.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})
+  });
+  btn.disabled=false;if(error){console.error(error);return;}
+  input.value='';document.getElementById('char-ct').textContent='0';
+  const toast=document.getElementById('toast');toast.classList.add('show');
+  setTimeout(()=>toast.classList.remove('show'),2500);renderEntries();
+}
+async function renderEntries(){
+  if(!currentUser)return;
+  const list=document.getElementById('entries-list');
+  const{data:entries,error}=await sb.from('journal_entries').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
+  if(error||!entries||!entries.length){list.innerHTML='<div class="empty-msg">Your gratitude entries will live here.</div>';document.getElementById('streak-wrap').style.display='none';return;}
+  const streak=calcStreak(entries);
+  const sw=document.getElementById('streak-wrap');
+  if(streak>0){sw.style.display='block';document.getElementById('streak-badge').textContent=streak===1?'1 day streak — keep going!':streak+' day streak — beautiful consistency';}
+  else sw.style.display='none';
+  list.innerHTML=`<div class="entries-count">${entries.length} entr${entries.length===1?'y':'ies'}</div>`+
+    entries.map(e=>`<div class="entry"><div class="entry-meta-row"><div class="dot"></div><div class="entry-meta">${e.date_label} &middot; ${e.time_label}</div></div><div class="entry-text">${e.text}</div></div>`).join('');
+}
+function calcStreak(entries){
+  if(!entries.length)return 0;
+  const days=[...new Set(entries.map(e=>e.created_at.split('T')[0]))].sort().reverse();
+  let streak=1;
+  for(let i=1;i<days.length;i++){if((new Date(days[i-1])-new Date(days[i]))/864e5===1)streak++;else break;}
+  return streak;
+}
+
+// ── Boot ──────────────────────────────────────────────────
+async function boot(){
+  await initSupabase();
+
+  // Check for SSO token in URL (coming from Shopify)
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('token');
+  if(token){await handleSSOToken(token);return;}
+
+  // Check existing Supabase session
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){currentUser=session.user;showApp();return;}
+
+  // No session — show auth
+  hideLoading();showAuth();setMode('login');
+
+  sb.auth.onAuthStateChange((event,session)=>{
+    if(event==='SIGNED_IN'&&session)currentUser=session.user;
+    else if(event==='SIGNED_OUT')currentUser=null;
+  });
+}
+
+boot();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
