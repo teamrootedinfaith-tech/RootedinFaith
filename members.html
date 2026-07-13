@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Members — Rooted in Faith</title>
+  <meta name="description" content="Rooted in Faith members portal — courses, Morning Grace, and more." />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/courses.js"></script>
+  <style>
+    :root{
+      --green:#2E5339; --green-dark:#24422e; --green-light:#eef3ef;
+      --bg:#FAFAF8; --card:#FFFFFF; --muted:#F3F2EF;
+      --text:#1A1917; --text-2:#6B6963; --text-3:#A09C97;
+      --border:rgba(0,0,0,0.08); --border-2:rgba(0,0,0,0.14);
+      --r-sm:8px; --r-md:14px; --r-lg:20px; --r-pill:50px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    h1,h2,h3,.serif{font-family:'Playfair Display',serif}
+
+    /* ── Loading / gates ── */
+    .gate{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:200;padding:1.5rem;text-align:center;transition:opacity .3s}
+    .gate.hidden{opacity:0;pointer-events:none}
+    .gate-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:600}
+    .gate-sub{font-size:13px;color:var(--text-2);max-width:340px;line-height:1.7}
+    .dots{display:flex;gap:5px}
+    .dots i{width:5px;height:5px;border-radius:50%;background:var(--text-3);animation:dp 1.2s ease-in-out infinite}
+    .dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+    @keyframes dp{0%,80%,100%{opacity:.2}40%{opacity:1}}
+    .gate-btn{display:inline-block;margin-top:.5rem;padding:.8rem 2rem;border-radius:var(--r-pill);background:var(--green);color:#fff;font-size:13px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+    .gate-link{font-size:12px;color:var(--text-3);text-decoration:underline;text-underline-offset:2px;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:.25rem}
+
+    /* ── Top bar ── */
+    .topbar{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--border);padding:0 1.25rem;height:60px;display:flex;align-items:center;gap:1rem}
+    .topbar-brand{display:flex;align-items:center;gap:10px;font-family:'Playfair Display',serif;font-size:19px;font-weight:600;color:var(--text);text-decoration:none}
+    .topbar-brand svg{color:var(--green)}
+    .topbar-spacer{flex:1}
+    .topbar-btn{background:none;border:1px solid var(--border-2);border-radius:var(--r-pill);padding:7px 16px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--text-2);cursor:pointer;transition:background .18s}
+    .topbar-btn:hover{background:var(--muted)}
+
+    /* ── Views ── */
+    .view{display:none;max-width:1100px;margin:0 auto;padding:2rem 1.25rem 4rem}
+    .view.active{display:block;animation:rise .25s ease}
+    @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+    /* ── Dashboard ── */
+    .welcome{margin-bottom:2rem}
+    .welcome h1{font-size:clamp(26px,4vw,36px);font-weight:600;margin-bottom:6px}
+    .welcome p{color:var(--text-2);font-size:14.5px;font-weight:300}
+    .section-h{font-family:'Playfair Display',serif;font-size:22px;font-weight:600;margin:2.25rem 0 1rem}
+
+    .grace-card{background:var(--green);border-radius:var(--r-lg);padding:2rem;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem;color:#fff}
+    .grace-info{flex:1;min-width:240px}
+    .grace-info h2{font-size:24px;font-weight:600;margin-bottom:6px;color:#fff}
+    .grace-info p{font-size:13.5px;font-weight:300;line-height:1.7;color:rgba(255,255,255,.85);max-width:460px}
+    .grace-btn{display:inline-flex;align-items:center;gap:8px;background:#fff;color:var(--green-dark);padding:.8rem 1.6rem;border-radius:var(--r-pill);font-size:12.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;transition:opacity .18s}
+    .grace-btn:hover{opacity:.88}
+
+    .course-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.25rem}
+    .course-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .2s}
+    .course-card:hover{box-shadow:0 10px 32px rgba(0,0,0,.08);transform:translateY(-2px)}
+    .course-img{width:100%;aspect-ratio:16/10;object-fit:cover;background:var(--muted);display:block}
+    .course-body{padding:1.25rem}
+    .course-body h3{font-size:17px;font-weight:600;line-height:1.35;margin-bottom:6px}
+    .course-body p{font-size:13px;color:var(--text-2);font-weight:300;line-height:1.6;margin-bottom:1rem}
+    .progress-row{display:flex;align-items:center;gap:10px}
+    .progress-track{flex:1;height:5px;background:var(--muted);border-radius:5px;overflow:hidden}
+    .progress-fill{height:100%;background:var(--green);border-radius:5px;transition:width .4s ease}
+    .progress-label{font-size:11px;font-weight:600;color:var(--green);letter-spacing:.04em;white-space:nowrap}
+
+    /* ── Course player ── */
+    .player{display:none;max-width:1280px;margin:0 auto}
+    .player.active{display:flex;animation:rise .25s ease}
+    .sidebar{width:300px;flex-shrink:0;border-right:1px solid var(--border);background:var(--card);height:calc(100vh - 60px);position:sticky;top:60px;overflow-y:auto;padding:1.25rem 0}
+    .back-link{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text-2);text-decoration:none;padding:0 1.25rem;margin-bottom:1rem;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif}
+    .back-link:hover{color:var(--text)}
+    .sb-title{font-family:'Playfair Display',serif;font-size:16.5px;font-weight:600;line-height:1.4;padding:0 1.25rem;margin-bottom:6px}
+    .sb-progress{padding:0 1.25rem;margin-bottom:1.25rem}
+    .sb-progress .progress-label{font-size:10.5px}
+    .sb-progress .progress-track{margin-top:5px}
+    .module{border-top:1px solid var(--border)}
+    .module-head{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.85rem 1.25rem;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:var(--text);text-align:left}
+    .module-head svg{flex-shrink:0;transition:transform .2s;color:var(--text-3)}
+    .module.open .module-head svg{transform:rotate(180deg)}
+    .module-lessons{display:none}
+    .module.open .module-lessons{display:block}
+    .lesson-item{width:100%;display:flex;align-items:flex-start;gap:10px;padding:.7rem 1.25rem .7rem 1.4rem;background:none;border:none;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12.5px;color:var(--text-2);text-align:left;line-height:1.45;transition:background .15s}
+    .lesson-item:hover{background:var(--muted)}
+    .lesson-item.active{background:var(--green);color:#fff}
+    .lesson-item.active .ring{border-color:rgba(255,255,255,.7)}
+    .ring{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--border-2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center}
+    .ring.done{background:var(--green);border-color:var(--green)}
+    .lesson-item.active .ring.done{background:#fff;border-color:#fff}
+    .ring.done svg{display:block}
+    .ring svg{display:none}
+    .lesson-item.active .ring.done svg path{stroke:var(--green)}
+
+    .lesson-pane{flex:1;padding:2.5rem clamp(1.25rem,4vw,3.5rem);min-width:0}
+    .lesson-pane h1{font-size:clamp(22px,3vw,30px);font-weight:600;line-height:1.3;margin-bottom:1.5rem}
+    .lesson-content{font-size:15px;font-weight:300;line-height:1.85;color:var(--text)}
+    .lesson-content p{margin-bottom:1.1rem}
+    .lesson-content ul,.lesson-content ol{margin:0 0 1.1rem 1.4rem}
+    .lesson-content li{margin-bottom:.35rem}
+    .lesson-content strong{font-weight:600}
+    .lesson-content img{max-width:100%;border-radius:var(--r-md);margin:1rem 0}
+    .lesson-content iframe{max-width:100%;border-radius:var(--r-md);margin:1rem 0}
+    .complete-row{margin-top:2.5rem;display:flex;justify-content:center}
+    .complete-btn{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:#fff;border:none;padding:.85rem 1.8rem;border-radius:var(--r-pill);font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .18s}
+    .complete-btn:hover{background:var(--green-dark)}
+    .complete-btn.done{background:var(--muted);color:var(--green);cursor:default}
+
+    /* Mobile course layout */
+    .sb-toggle{display:none}
+    @media(max-width:820px){
+      .player.active{flex-direction:column}
+      .sidebar{position:fixed;left:0;top:60px;bottom:0;height:auto;z-index:60;transform:translateX(-100%);transition:transform .25s ease;box-shadow:0 0 40px rgba(0,0,0,.15);width:min(300px,85vw)}
+      .sidebar.open{transform:translateX(0)}
+      .sb-toggle{display:inline-flex;align-items:center;gap:7px;margin:1rem 1.25rem 0;background:var(--card);border:1px solid var(--border-2);border-radius:var(--r-pill);padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--text);cursor:pointer}
+      .sb-overlay{display:none;position:fixed;inset:60px 0 0 0;background:rgba(0,0,0,.3);z-index:55}
+      .sb-overlay.show{display:block}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Loading gate ── -->
+<div class="gate" id="gate-loading">
+  <div class="gate-title serif">Rooted in Faith</div>
+  <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)">Members Portal</div>
+  <div class="dots"><i></i><i></i><i></i></div>
+</div>
+
+<!-- ── No access gate ── -->
+<div class="gate hidden" id="gate-denied" style="display:none">
+  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" style="color:var(--text-3)"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1"/><path d="M8 12h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+  <div class="gate-title serif">Members Only</div>
+  <div class="gate-sub" id="denied-msg">This area requires an active membership. Use the email from your order, or join us to get access.</div>
+  <a class="gate-btn" href="https://rootedinfaith.co" target="_blank">Get Membership</a>
+  <button class="gate-link" onclick="doLogout()">Sign out & try another email</button>
+</div>
+
+<!-- ── Sign-in gate ── -->
+<div class="gate hidden" id="gate-auth" style="display:none">
+  <div class="gate-title serif">Members Portal</div>
+  <div class="gate-sub">Enter the email you used on your order and we'll send you a secure sign-in link.</div>
+  <div style="display:flex;flex-direction:column;gap:.6rem;width:100%;max-width:320px;margin-top:.5rem">
+    <input id="auth-email" type="email" placeholder="Your order email" style="width:100%;padding:.85rem 1rem;border:1px solid var(--border-2);border-radius:var(--r-sm);background:var(--card);font-family:'DM Sans',sans-serif;font-size:14px" />
+    <button class="gate-btn" style="margin-top:0" onclick="sendLink()" id="send-btn">Email Me a Sign-In Link</button>
+    <div id="auth-note" style="font-size:12px;color:var(--text-2);min-height:1.2rem;line-height:1.5"></div>
+  </div>
+</div>
+
+<!-- ── Portal ── -->
+<div id="portal" style="display:none">
+  <div class="topbar">
+    <a class="topbar-brand" href="#" onclick="showDash();return false;">
+      <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><path d="M11 1v20M1 11h20M4.5 4.5l13 13M17.5 4.5l-13 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      Rooted in Faith
+    </a>
+    <div class="topbar-spacer"></div>
+    <button class="topbar-btn" onclick="doLogout()">Sign Out</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="view active" id="view-dash">
+    <div class="welcome">
+      <h1 id="welcome-line">Welcome back</h1>
+      <p>Your daily tools and courses, all in one place.</p>
+    </div>
+
+    <div class="grace-card">
+      <div class="grace-info">
+        <h2 class="serif">Morning Grace</h2>
+        <p>Your daily prayer, devotional, and gratitude journal. A fresh prayer waits for you every morning.</p>
+      </div>
+      <a class="grace-btn" href="https://rootedin-faith.vercel.app" target="_blank">
+        Open Morning Grace
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M7 17L17 7M17 7H8M17 7v9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <h2 class="section-h">My Courses</h2>
+    <div class="course-grid" id="course-grid"></div>
+  </div>
+
+  <!-- Course player -->
+  <div class="player" id="view-course">
+    <div class="sb-overlay" id="sb-overlay" onclick="toggleSidebar(false)"></div>
+    <div class="sidebar" id="sidebar">
+      <button class="back-link" onclick="showDash()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l6 6M5 12l6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to my courses
+      </button>
+      <div class="sb-title" id="sb-course-title"></div>
+      <div class="sb-progress">
+        <span class="progress-label" id="sb-progress-label">0% COMPLETE</span>
+        <div class="progress-track"><div class="progress-fill" id="sb-progress-fill" style="width:0%"></div></div>
+      </div>
+      <div id="sb-modules"></div>
+    </div>
+    <div style="flex:1;min-width:0">
+      <button class="sb-toggle" onclick="toggleSidebar(true)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        Course Lessons
+      </button>
+      <div class="lesson-pane">
+        <h1 id="lesson-title"></h1>
+        <div class="lesson-content" id="lesson-content"></div>
+        <div class="complete-row">
+          <button class="complete-btn" id="complete-btn" onclick="completeLesson()">
+            Complete and Continue
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const{createClient}=supabase;
+let sb=null,user=null,progress=new Set();
+let curCourse=null,curLesson=null;
+
+// ── Boot & gating ─────────────────────────────────────────
+async function boot(){
+  const r=await fetch('/api/config');
+  const{supabaseUrl,supabaseKey}=await r.json();
+  sb=createClient(supabaseUrl,supabaseKey);
+
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){showGate('auth');return;}
+  user=session.user;
+
+  // Live membership tag check
+  const active=await checkAccess(user.email);
+  if(!active){showGate('denied');return;}
+
+  await loadProgress();
+  enterPortal();
+}
+
+async function checkAccess(email){
+  try{
+    const r=await fetch('/api/check-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const d=await r.json();return d.active===true;
+  }catch(e){return true;}
+}
+
+function showGate(which){
+  document.getElementById('gate-loading').classList.add('hidden');
+  ['auth','denied'].forEach(g=>{
+    const el=document.getElementById('gate-'+g);
+    el.style.display=which===g?'flex':'none';
+    el.classList.toggle('hidden',which!==g);
+  });
+}
+
+function enterPortal(){
+  document.getElementById('gate-loading').classList.add('hidden');
+  document.getElementById('portal').style.display='block';
+  const first=(user.user_metadata&&user.user_metadata.first_name)||'';
+  document.getElementById('welcome-line').textContent=first?`Welcome back, ${first}`:'Welcome back';
+  renderCourseGrid();
+}
+
+// ── Magic-link auth (with membership pre-check) ───────────
+async function sendLink(){
+  const email=document.getElementById('auth-email').value.trim();
+  const note=document.getElementById('auth-note');
+  const btn=document.getElementById('send-btn');
+  if(!email){note.textContent='Enter your email first.';return;}
+  btn.disabled=true;btn.textContent='Checking membership…';
+  const active=await checkAccess(email);
+  if(!active){
+    note.textContent='No active membership found for this email. Use the email from your order, or purchase a membership.';
+    btn.disabled=false;btn.textContent='Email Me a Sign-In Link';return;
+  }
+  btn.textContent='Sending link…';
+  const{error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href}});
+  if(error){note.textContent=error.message;}
+  else{note.textContent='Check your inbox — tap the link in the email and you\'ll land right back here, signed in.';}
+  btn.disabled=false;btn.textContent='Email Me a Sign-In Link';
+}
+
+async function doLogout(){
+  await sb.auth.signOut();
+  window.location.reload();
+}
+
+// ── Progress (Supabase) ───────────────────────────────────
+async function loadProgress(){
+  const{data}=await sb.from('lesson_progress').select('course_id,lesson_id').eq('user_id',user.id);
+  progress=new Set((data||[]).map(r=>r.course_id+'::'+r.lesson_id));
+}
+
+function courseLessons(c){return c.modules.flatMap(m=>m.lessons);}
+function coursePct(c){
+  const all=courseLessons(c);
+  if(!all.length)return 0;
+  const done=all.filter(l=>progress.has(c.id+'::'+l.id)).length;
+  return Math.round(done/all.length*100);
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+function renderCourseGrid(){
+  const grid=document.getElementById('course-grid');
+  grid.innerHTML=(window.COURSES||[]).map(c=>{
+    const pct=coursePct(c);
+    return `<div class="course-card" onclick="openCourse('${c.id}')">
+      <img class="course-img" src="${c.image}" alt="" onerror="this.style.display='none'">
+      <div class="course-body">
+        <h3 class="serif">${c.title}</h3>
+        <p>${c.description||''}</p>
+        <div class="progress-row">
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+          <span class="progress-label">${pct}% COMPLETE</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showDash(){
+  document.getElementById('view-course').classList.remove('active');
+  document.getElementById('view-dash').classList.add('active');
+  renderCourseGrid();
+  window.scrollTo(0,0);
+}
+
+// ── Course player ─────────────────────────────────────────
+function openCourse(id){
+  curCourse=(window.COURSES||[]).find(c=>c.id===id);
+  if(!curCourse)return;
+  document.getElementById('view-dash').classList.remove('active');
+  document.getElementById('view-course').classList.add('active');
+  document.getElementById('sb-course-title').textContent=curCourse.title;
+  // open first incomplete lesson (or first lesson)
+  const all=courseLessons(curCourse);
+  const next=all.find(l=>!progress.has(curCourse.id+'::'+l.id))||all[0];
+  renderSidebar();
+  openLesson(next.id,false);
+  window.scrollTo(0,0);
+}
+
+function renderSidebar(){
+  const wrap=document.getElementById('sb-modules');
+  wrap.innerHTML=curCourse.modules.map((m,mi)=>{
+    const containsCurrent=curLesson&&m.lessons.some(l=>l.id===curLesson.id);
+    const open=containsCurrent||mi===0;
+    return `<div class="module ${open?'open':''}" id="mod-${mi}">
+      <button class="module-head" onclick="document.getElementById('mod-${mi}').classList.toggle('open')">
+        <span>${m.title}</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="module-lessons">
+        ${m.lessons.map(l=>{
+          const done=progress.has(curCourse.id+'::'+l.id);
+          const active=curLesson&&curLesson.id===l.id;
+          return `<button class="lesson-item ${active?'active':''}" onclick="openLesson('${l.id}')">
+            <span class="ring ${done?'done':''}"><svg width="9" height="9" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span>${l.title}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  updateSbProgress();
+}
+
+function updateSbProgress(){
+  const pct=coursePct(curCourse);
+  document.getElementById('sb-progress-label').textContent=pct+'% COMPLETE';
+  document.getElementById('sb-progress-fill').style.width=pct+'%';
+}
+
+function openLesson(id,scroll=true){
+  const all=courseLessons(curCourse);
+  curLesson=all.find(l=>l.id===id);
+  if(!curLesson)return;
+  document.getElementById('lesson-title').textContent=curLesson.title;
+  document.getElementById('lesson-content').innerHTML=curLesson.content;
+  const done=progress.has(curCourse.id+'::'+curLesson.id);
+  setCompleteBtn(done);
+  renderSidebar();
+  toggleSidebar(false);
+  if(scroll)window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function setCompleteBtn(done){
+  const btn=document.getElementById('complete-btn');
+  if(done){
+    btn.classList.add('done');
+    btn.innerHTML='✓ Completed';
+  }else{
+    btn.classList.remove('done');
+    btn.innerHTML='Complete and Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+}
+
+async function completeLesson(){
+  const key=curCourse.id+'::'+curLesson.id;
+  if(!progress.has(key)){
+    progress.add(key);
+    await sb.from('lesson_progress').upsert(
+      {user_id:user.id,course_id:curCourse.id,lesson_id:curLesson.id},
+      {onConflict:'user_id,course_id,lesson_id'}
+    );
+  }
+  // advance to next lesson
+  const all=courseLessons(curCourse);
+  const idx=all.findIndex(l=>l.id===curLesson.id);
+  if(idx<all.length-1){openLesson(all[idx+1].id);}
+  else{setCompleteBtn(true);renderSidebar();}
+}
+
+function toggleSidebar(open){
+  document.getElementById('sidebar').classList.toggle('open',open);
+  document.getElementById('sb-overlay').classList.toggle('show',open);
+}
+
+boot();
+</script>
+</body>
+</html>
