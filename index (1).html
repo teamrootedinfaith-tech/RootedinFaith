@@ -540,5 +540,119 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));
 }
 </script>
+  <!-- ════════════════════════════════════════════════════════════
+     MORNING GRACE — SMART INSTALL BANNER
+     Paste this entire block into index.html, just BEFORE </body>
+     (GitHub → index.html → pencil icon → scroll to bottom → paste → commit)
+     ════════════════════════════════════════════════════════════ -->
+<style>
+  .pwa-banner{position:fixed;left:50%;bottom:calc(1rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(120%);width:min(380px,calc(100vw - 2rem));background:var(--bg-card,#fff);border:0.5px solid var(--border-2,rgba(0,0,0,.13));border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:1rem 1.1rem;display:flex;align-items:center;gap:12px;z-index:300;transition:transform .35s cubic-bezier(.2,.9,.3,1);font-family:'DM Sans',system-ui,sans-serif}
+  .pwa-banner.show{transform:translateX(-50%) translateY(0)}
+  .pwa-banner-icon{width:42px;height:42px;border-radius:10px;flex-shrink:0;background:var(--bg-muted,#F3F2EF);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .pwa-banner-icon img{width:100%;height:100%;object-fit:cover}
+  .pwa-banner-text{flex:1;min-width:0}
+  .pwa-banner-title{font-size:13.5px;font-weight:600;color:var(--text,#1A1917);line-height:1.3}
+  .pwa-banner-sub{font-size:11.5px;color:var(--text-3,#A09C97);line-height:1.4;margin-top:2px}
+  .pwa-banner-btn{flex-shrink:0;background:var(--text,#1A1917);color:var(--bg-card,#fff);border:none;border-radius:50px;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
+  .pwa-banner-close{position:absolute;top:6px;right:10px;background:none;border:none;color:var(--text-3,#A09C97);font-size:16px;cursor:pointer;padding:4px;line-height:1}
+  .pwa-ios-sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:310;display:none;align-items:flex-end;justify-content:center}
+  .pwa-ios-sheet.show{display:flex}
+  .pwa-ios-card{width:100%;max-width:440px;background:var(--bg-card,#fff);border-radius:22px 22px 0 0;padding:1.75rem 1.5rem calc(1.75rem + env(safe-area-inset-bottom,0px));text-align:center;font-family:'DM Sans',system-ui,sans-serif;animation:sheetUp .3s ease}
+  @keyframes sheetUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .pwa-ios-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--text,#1A1917);margin-bottom:.4rem}
+  .pwa-ios-sub{font-size:13px;color:var(--text-2,#6B6963);line-height:1.6;margin-bottom:1.25rem}
+  .pwa-ios-steps{text-align:left;display:flex;flex-direction:column;gap:.9rem;margin-bottom:1.5rem}
+  .pwa-ios-step{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--text,#1A1917)}
+  .pwa-ios-num{width:24px;height:24px;border-radius:50%;background:var(--bg-muted,#F3F2EF);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+  .pwa-ios-step svg{flex-shrink:0}
+  .pwa-ios-done{width:100%;padding:.8rem;border-radius:50px;background:var(--text,#1A1917);color:var(--bg-card,#fff);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+</style>
+
+<div class="pwa-banner" id="pwa-banner">
+  <button class="pwa-banner-close" onclick="pwaDismiss()">&times;</button>
+  <div class="pwa-banner-icon"><img src="/icons/icon-192.png" alt=""></div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Get the Morning Grace app</div>
+    <div class="pwa-banner-sub">Add it to your home screen for one-tap access</div>
+  </div>
+  <button class="pwa-banner-btn" onclick="pwaInstall()">Install</button>
+</div>
+
+<div class="pwa-ios-sheet" id="pwa-ios-sheet" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="pwa-ios-card">
+    <div class="pwa-ios-title">Add to Home Screen</div>
+    <div class="pwa-ios-sub">Install Morning Grace in two taps — it'll open full screen like a real app.</div>
+    <div class="pwa-ios-steps">
+      <div class="pwa-ios-step">
+        <span class="pwa-ios-num">1</span>
+        Tap the <svg width="17" height="17" viewBox="0 0 24 24" fill="none" style="margin:0 2px"><path d="M12 16V3m0 0L7 8m5-5l5 5" stroke="#0A84FF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" stroke="#0A84FF" stroke-width="1.8" stroke-linecap="round"/></svg> <strong>&nbsp;Share&nbsp;</strong> button below
+      </div>
+      <div class="pwa-ios-step">
+        <span class="pwa-ios-num">2</span>
+        Scroll down and tap <strong>&nbsp;"Add to Home Screen"</strong>
+      </div>
+      <div class="pwa-ios-step">
+        <span class="pwa-ios-num">3</span>
+        Tap <strong>&nbsp;Add&nbsp;</strong> — done. Look for the tree icon.
+      </div>
+    </div>
+    <button class="pwa-ios-done" onclick="document.getElementById('pwa-ios-sheet').classList.remove('show')">Got It</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var deferredPrompt=null;
+  var DISMISS_KEY='mg_pwa_dismissed';
+
+  // Already installed? (standalone mode) → never show
+  var isStandalone=window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone===true;
+  if(isStandalone)return;
+
+  // Dismissed in the last 7 days? → stay quiet
+  var dismissed=localStorage.getItem(DISMISS_KEY);
+  if(dismissed && (Date.now()-parseInt(dismissed))<7*24*60*60*1000)return;
+
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  // Android/Chrome: capture the real install prompt
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();
+    deferredPrompt=e;
+    showBanner();
+  });
+
+  // iOS: no install API — show banner, button opens instruction sheet
+  if(isIOS){
+    setTimeout(showBanner,2500);
+  }
+
+  function showBanner(){
+    var b=document.getElementById('pwa-banner');
+    if(b)setTimeout(function(){b.classList.add('show');},600);
+  }
+
+  window.pwaInstall=async function(){
+    if(deferredPrompt){
+      deferredPrompt.prompt();
+      var choice=await deferredPrompt.userChoice;
+      deferredPrompt=null;
+      document.getElementById('pwa-banner').classList.remove('show');
+      if(choice.outcome!=='accepted')localStorage.setItem(DISMISS_KEY,Date.now());
+    }else{
+      // iOS path
+      document.getElementById('pwa-banner').classList.remove('show');
+      document.getElementById('pwa-ios-sheet').classList.add('show');
+    }
+  };
+
+  window.pwaDismiss=function(){
+    document.getElementById('pwa-banner').classList.remove('show');
+    localStorage.setItem(DISMISS_KEY,Date.now());
+  };
+})();
+</script>
+<!-- ══════════════ END INSTALL BANNER ══════════════ -->
 </body>
 </html>
