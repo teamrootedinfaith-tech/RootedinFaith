@@ -13,10 +13,9 @@ export default async function handler(req, res) {
 
   const { prompt, system, messages } = req.body;
 
-  // Accept either a single prompt OR a full messages array (for Pastor chat)
   let messageList;
   if (Array.isArray(messages) && messages.length) {
-    messageList = messages.slice(-24); // keep context reasonable
+    messageList = messages.slice(-24);
   } else if (prompt) {
     messageList = [{ role: 'user', content: prompt }];
   } else {
