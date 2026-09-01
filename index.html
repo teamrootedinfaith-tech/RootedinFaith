@@ -174,20 +174,19 @@
       <div class="auth-logo-name">Morning Grace</div>
       <div class="auth-logo-sub">Faith Club Members</div>
     </div>
-    <div class="auth-toggle">
-      <button class="auth-toggle-btn active" id="tog-login"  onclick="setMode('login')">Sign In</button>
-      <button class="auth-toggle-btn"        id="tog-signup" onclick="setMode('signup')">Create Account</button>
-    </div>
-    <div class="auth-fields">
-      <div class="name-row" id="name-row" style="display:none">
-        <input class="auth-input" type="text" id="a-first" placeholder="First name" />
-        <input class="auth-input" type="text" id="a-last"  placeholder="Last name" />
-      </div>
-      <input class="auth-input" type="email"    id="a-email" placeholder="Shopify order email" autocomplete="email" />
-      <input class="auth-input" type="password" id="a-pass"  placeholder="Password" autocomplete="current-password" />
+    <div class="auth-fields" id="step-email">
+      <div style="font-size:12.5px;color:var(--text-2);text-align:center;line-height:1.6;margin-bottom:.25rem">Enter the email from your order and we'll send you a one-time sign-in code — no password needed.</div>
+      <input class="auth-input" type="email" id="a-email" placeholder="Your order email" autocomplete="email" inputmode="email" />
       <div class="auth-msg" id="auth-msg"></div>
-      <button class="btn-solid" id="auth-btn" onclick="handleAuth()">Sign In</button>
-      <button class="forgot-link" id="forgot-btn" onclick="handleForgot()">Forgot password?</button>
+      <button class="btn-solid" id="send-btn" onclick="sendCode()">Email Me a Code</button>
+    </div>
+    <div class="auth-fields" id="step-code" style="display:none">
+      <div style="font-size:12.5px;color:var(--text-2);text-align:center;line-height:1.6;margin-bottom:.25rem">We emailed a 6-digit code to<br/><strong id="sent-to" style="color:var(--text)"></strong></div>
+      <input class="auth-input" type="text" id="a-code" placeholder="Enter 6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="text-align:center;letter-spacing:.35em;font-size:18px" />
+      <div class="auth-msg" id="code-msg"></div>
+      <button class="btn-solid" id="verify-btn" onclick="verifyCode()">Sign In</button>
+      <button class="forgot-link" style="text-align:center" onclick="resendCode()">Resend code</button>
+      <button class="forgot-link" style="text-align:center" onclick="backToEmail()">Use a different email</button>
     </div>
     <div class="auth-footer">Access requires an active membership.<br/><a href="https://rootedinfaith.co" target="_blank">Purchase a membership →</a></div>
   </div>
@@ -350,55 +349,57 @@ async function handleSSOToken(token){
   }
 }
 
-function setMode(mode){
-  authMode=mode;
-  document.getElementById('tog-login').classList.toggle('active',mode==='login');
-  document.getElementById('tog-signup').classList.toggle('active',mode==='signup');
-  document.getElementById('name-row').style.display=mode==='signup'?'flex':'none';
-  document.getElementById('forgot-btn').style.display=mode==='login'?'block':'none';
-  document.getElementById('auth-btn').textContent=mode==='login'?'Sign In':'Create Account';
-  document.getElementById('auth-msg').textContent='';
+let pendingEmail='';
+function showMsg(text,ok=false,el='auth-msg'){
+  const m=document.getElementById(el);
+  m.textContent=text;m.className='auth-msg'+(ok?' ok':'');
 }
-function showMsg(text,ok=false){
-  const el=document.getElementById('auth-msg');
-  el.textContent=text;el.className='auth-msg'+(ok?' ok':'');
-}
-async function handleAuth(){
-  const email=document.getElementById('a-email').value.trim();
-  const pass=document.getElementById('a-pass').value;
-  if(!email||!pass){showMsg('Please enter your email and password.');return;}
-  const btn=document.getElementById('auth-btn');
-  btn.disabled=true;btn.textContent='Verifying membership…';showMsg('');
+async function sendCode(){
+  const email=document.getElementById('a-email').value.trim().toLowerCase();
+  if(!email){showMsg('Enter your email first.');return;}
+  const btn=document.getElementById('send-btn');
+  btn.disabled=true;btn.textContent='Checking membership…';showMsg('');
   try{
     const active=await checkAccess(email);
     if(!active){
       showMsg('No active membership found for this email. Use the email from your order, or purchase a membership.');
-      btn.disabled=false;btn.textContent=authMode==='login'?'Sign In':'Create Account';return;
+      return;
     }
-    btn.textContent=authMode==='login'?'Signing in…':'Creating account…';
-    let result;
-    if(authMode==='login'){
-      result=await sb.auth.signInWithPassword({email,password:pass});
-    }else{
-      const first=document.getElementById('a-first').value.trim();
-      const last=document.getElementById('a-last').value.trim();
-      result=await sb.auth.signUp({email,password:pass,options:{data:{first_name:first,last_name:last}}});
-      if(!result.error&&result.data.user&&!result.data.session){
-        showMsg('Check your email to confirm your account, then sign in.',true);
-        btn.disabled=false;btn.textContent='Create Account';return;
-      }
-    }
-    if(result.error)throw result.error;
-    currentUser=result.data.user;
-    showApp();
-  }catch(e){showMsg(e.message||'Something went wrong.');}
-  finally{btn.disabled=false;btn.textContent=authMode==='login'?'Sign In':'Create Account';}
+    btn.textContent='Sending code…';
+    const{error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true}});
+    if(error)throw error;
+    pendingEmail=email;
+    document.getElementById('sent-to').textContent=email;
+    document.getElementById('step-email').style.display='none';
+    document.getElementById('step-code').style.display='flex';
+    document.getElementById('a-code').focus();
+  }catch(e){showMsg(e.message||'Something went wrong. Please try again.');}
+  finally{btn.disabled=false;btn.textContent='Email Me a Code';}
 }
-async function handleForgot(){
-  const email=document.getElementById('a-email').value.trim();
-  if(!email){showMsg('Enter your email above first.');return;}
-  await sb.auth.resetPasswordForEmail(email);
-  showMsg('Password reset email sent — check your inbox.',true);
+async function verifyCode(){
+  const code=document.getElementById('a-code').value.trim();
+  if(code.length<6){showMsg('Enter the 6-digit code from your email.',false,'code-msg');return;}
+  const btn=document.getElementById('verify-btn');
+  btn.disabled=true;btn.textContent='Verifying…';showMsg('',false,'code-msg');
+  try{
+    const{data,error}=await sb.auth.verifyOtp({email:pendingEmail,token:code,type:'email'});
+    if(error)throw error;
+    currentUser=data.user;
+    showApp();
+  }catch(e){
+    showMsg('That code didn\'t work — check it and try again, or resend.',false,'code-msg');
+  }finally{btn.disabled=false;btn.textContent='Sign In';}
+}
+async function resendCode(){
+  if(!pendingEmail)return;
+  await sb.auth.signInWithOtp({email:pendingEmail,options:{shouldCreateUser:true}});
+  showMsg('New code sent — check your inbox.',true,'code-msg');
+}
+function backToEmail(){
+  document.getElementById('step-code').style.display='none';
+  document.getElementById('step-email').style.display='flex';
+  document.getElementById('a-code').value='';
+  showMsg('');
 }
 async function handleLogout(){
   await sb.auth.signOut();currentUser=null;
@@ -627,7 +628,7 @@ async function boot(){
   if(token){await handleSSOToken(token);return;}
   const{data:{session}}=await sb.auth.getSession();
   if(session){currentUser=session.user;await gateAndShow();return;}
-  hideLoading();showAuth();setMode('login');
+  hideLoading();showAuth();
 }
 boot();
 if('serviceWorker' in navigator){
@@ -637,7 +638,7 @@ if('serviceWorker' in navigator){
 
 <!-- ══ INSTALL BANNER ══ -->
 <style>
-  .pwa-banner{position:fixed;left:50%;bottom:calc(4.5rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(150%);width:min(380px,calc(100vw - 2rem));background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:1rem 1.1rem;display:flex;align-items:center;gap:12px;z-index:300;transition:transform .35s cubic-bezier(.2,.9,.3,1)}
+  .pwa-banner{position:fixed;left:50%;bottom:calc(6.25rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(150%);width:min(380px,calc(100vw - 2rem));background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:1rem 1.1rem;display:flex;align-items:center;gap:12px;z-index:300;transition:transform .35s cubic-bezier(.2,.9,.3,1)}
   .pwa-banner.show{transform:translateX(-50%) translateY(0)}
   .pwa-banner-icon{width:42px;height:42px;border-radius:10px;flex-shrink:0;background:var(--bg-muted);overflow:hidden}
   .pwa-banner-icon img{width:100%;height:100%;object-fit:cover}
