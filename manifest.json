@@ -1,7 +1,7 @@
 {
-  "name": "Morning Grace",
-  "short_name": "Morning Grace",
-  "description": "Your daily companion for prayer, devotion, and gratitude.",
+  "name": "Rooted in Faith — Guide to Understand the Bible + Personal Pastor",
+  "short_name": "RootedinFaith",
+  "description": "Your guide to understand the Bible + a personal pastor. Daily prayer, devotional, and gratitude journal — for Faith Club members.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -21,6 +21,10 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["lifestyle", "health", "productivity"],
+  "categories": [
+    "lifestyle",
+    "health",
+    "productivity"
+  ],
   "lang": "en-US"
 }
