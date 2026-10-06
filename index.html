@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Rooted in Faith — Guide to Understand the Bible + Personal Pastor</title>
-  <meta name="theme-color" content="#FAFAF8" media="(prefers-color-scheme: light)" />
-  <meta name="theme-color" content="#111110" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#FFFFFF" id="theme-meta" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -18,183 +17,249 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{--bg:#FAFAF8;--bg-card:#FFFFFF;--bg-muted:#F3F2EF;--text:#1A1917;--text-2:#6B6963;--text-3:#A09C97;--border:rgba(0,0,0,0.07);--border-2:rgba(0,0,0,0.13);--danger:#b83232;--green:#2E5339;--r-sm:10px;--r-md:16px;--r-lg:22px;--r-pill:50px}
-    @media(prefers-color-scheme:dark){:root{--bg:#111110;--bg-card:#1C1B19;--bg-muted:#242320;--text:#F2F0EC;--text-2:#9B9892;--text-3:#6B6963;--border:rgba(255,255,255,0.07);--border-2:rgba(255,255,255,0.13);--green:#4a7a58}}
+    :root{
+      --green:#2E5D3A; --green-deep:#234A2D; --green-wash:#EDF3EE;
+      --paper:#FFFFFF; --sheet:#F6F7F4;
+      --ink:#1C241E; --ink-2:#5C6A5F; --ink-3:#99A69B;
+      --hair:#E4E9E4; --hair-2:#D5DDD6;
+      --danger:#A33A2E;
+      --r-sm:12px; --r-md:16px; --r-lg:24px; --r-pill:50px;
+      --shadow-card:0 10px 30px rgba(28,36,30,.10), 0 2px 8px rgba(28,36,30,.05);
+    }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html{-webkit-text-size-adjust:100%}
-    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh}
-    @media(min-width:768px){body{display:flex;align-items:center;justify-content:center;padding:2rem}}
-    .loading-screen{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:100;transition:opacity .3s}
+    body{font-family:'DM Sans',system-ui,sans-serif;background:var(--paper);color:var(--ink);min-height:100vh;min-height:100dvh}
+    @media(min-width:768px){body{display:flex;align-items:center;justify-content:center;padding:2rem;background:var(--sheet)}}
+    button{font-family:'DM Sans',sans-serif}
+
+    /* ── Loading ── */
+    .loading-screen{position:fixed;inset:0;background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9rem;z-index:100;transition:opacity .3s}
     .loading-screen.hidden{opacity:0;pointer-events:none}
-    .loading-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:500;color:var(--text)}
-    .loading-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+    .loading-logo{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:600;color:var(--ink)}
+    .loading-sub{font-size:12px;color:var(--ink-3);letter-spacing:.02em}
     .loading-dots{display:flex;gap:5px;margin-top:.25rem}
-    .loading-dot{width:4px;height:4px;border-radius:50%;background:var(--text-3);animation:dp 1.2s ease-in-out infinite}
+    .loading-dot{width:5px;height:5px;border-radius:50%;background:var(--green);opacity:.4;animation:dp 1.2s ease-in-out infinite}
     .loading-dot:nth-child(2){animation-delay:.2s}.loading-dot:nth-child(3){animation-delay:.4s}
     @keyframes dp{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-    .auth-wrap{width:100%;min-height:100vh;min-height:100dvh;display:none;align-items:center;justify-content:center;padding:1.5rem;padding-top:calc(1.5rem + env(safe-area-inset-top,0px))}
+
+    /* ── Auth ── */
+    .auth-wrap{width:100%;min-height:100vh;min-height:100dvh;display:none;align-items:center;justify-content:center;padding:1.5rem;padding-top:calc(1.5rem + env(safe-area-inset-top,0px));background:var(--paper)}
     .auth-wrap.visible{display:flex}
-    @media(min-width:768px){.auth-wrap{min-height:unset;width:430px;padding:0}}
-    .auth-card{width:100%;max-width:380px;background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:var(--r-lg);padding:2.25rem 1.75rem 2rem;display:flex;flex-direction:column;gap:1.4rem}
-    .auth-logo{display:flex;flex-direction:column;align-items:center;gap:6px}
-    .auth-logo-icon{color:var(--text-2);margin-bottom:4px}
-    .auth-logo-name{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:500;line-height:1}
-    .auth-logo-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
-    .auth-toggle{display:flex;background:var(--bg-muted);border-radius:var(--r-pill);padding:3px;gap:3px}
-    .auth-toggle-btn{flex:1;padding:.5rem;border-radius:var(--r-pill);border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:var(--text-2);transition:all .2s;-webkit-tap-highlight-color:transparent}
-    .auth-toggle-btn.active{background:var(--bg-card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    @media(min-width:768px){.auth-wrap{min-height:unset;width:430px;padding:2rem 1.5rem;border-radius:var(--r-lg);box-shadow:var(--shadow-card)}}
+    .auth-card{width:100%;max-width:380px;display:flex;flex-direction:column;gap:1.4rem}
+    .auth-logo{display:flex;flex-direction:column;align-items:center;gap:7px}
+    .auth-logo-name{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:600;line-height:1;color:var(--ink)}
+    .auth-logo-sub{font-size:12.5px;color:var(--ink-2)}
     .auth-fields{display:flex;flex-direction:column;gap:.65rem}
-    .name-row{display:flex;gap:.65rem}
-    .auth-input{width:100%;padding:.82rem 1rem;border:0.5px solid var(--border-2);border-radius:var(--r-sm);background:var(--bg-muted);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);-webkit-appearance:none;transition:border-color .2s}
-    .auth-input:focus{outline:none;border-color:var(--text-3)}
-    .auth-input::placeholder{color:var(--text-3)}
-    .auth-msg{font-size:12px;text-align:center;min-height:1.2rem;line-height:1.5;color:var(--danger)}
-    .auth-msg.ok{color:var(--text-2)}
-    .forgot-link{font-size:12px;color:var(--text-2);text-align:right;cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;font-family:'DM Sans',sans-serif;-webkit-tap-highlight-color:transparent}
-    .auth-footer{font-size:11px;color:var(--text-3);text-align:center;line-height:1.6}
-    .auth-footer a{color:var(--text-2);text-decoration:underline;text-underline-offset:2px}
-    .btn-solid{width:100%;padding:.75rem;border-radius:var(--r-pill);background:var(--green);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--bg-card);transition:opacity .18s;-webkit-tap-highlight-color:transparent}
-    .btn-solid:disabled{opacity:.5;cursor:not-allowed}
-    .expired-wrap{width:100%;min-height:100vh;min-height:100dvh;display:none;align-items:center;justify-content:center;padding:1.5rem}
+    .auth-input{width:100%;padding:.85rem 1rem;border:1px solid var(--hair-2);border-radius:var(--r-sm);background:var(--paper);font-family:'DM Sans',sans-serif;font-size:15px;color:var(--ink);-webkit-appearance:none;transition:border-color .2s}
+    .auth-input:focus{outline:none;border-color:var(--green)}
+    .auth-input::placeholder{color:var(--ink-3)}
+    .auth-msg{font-size:12.5px;text-align:center;min-height:1.2rem;line-height:1.5;color:var(--danger)}
+    .auth-msg.ok{color:var(--green)}
+    .forgot-link{font-size:12.5px;color:var(--ink-2);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;-webkit-tap-highlight-color:transparent}
+    .auth-footer{font-size:12px;color:var(--ink-3);text-align:center;line-height:1.6}
+    .auth-footer a{color:var(--green);text-decoration:underline;text-underline-offset:2px}
+    .btn-solid{width:100%;padding:.85rem;border-radius:var(--r-pill);background:var(--green);border:none;font-size:13px;font-weight:600;letter-spacing:.04em;cursor:pointer;color:#fff;transition:background .18s;-webkit-tap-highlight-color:transparent}
+    .btn-solid:active{background:var(--green-deep)}
+    .btn-solid:disabled{opacity:.55;cursor:not-allowed}
+
+    /* ── Expired ── */
+    .expired-wrap{width:100%;min-height:100vh;min-height:100dvh;display:none;align-items:center;justify-content:center;padding:1.5rem;background:var(--paper)}
     .expired-wrap.visible{display:flex}
-    @media(min-width:768px){.expired-wrap{min-height:unset;width:430px;padding:0}}
-    .expired-card{width:100%;max-width:380px;background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:var(--r-lg);padding:2.5rem 1.75rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1.25rem}
-    .expired-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:500}
-    .expired-body{font-size:13.5px;font-weight:300;color:var(--text-2);line-height:1.7}
-    .btn-renew{display:block;width:100%;padding:.75rem;border-radius:var(--r-pill);background:var(--green);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--bg-card);text-decoration:none;text-align:center}
-    .expired-signout{font-size:11px;color:var(--text-3);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none;font-family:'DM Sans',sans-serif}
+    @media(min-width:768px){.expired-wrap{min-height:unset;width:430px;border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:3rem 1.5rem}}
+    .expired-card{width:100%;max-width:360px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1.1rem}
+    .expired-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600}
+    .expired-body{font-size:14px;font-weight:300;color:var(--ink-2);line-height:1.7}
+    .btn-renew{display:block;width:100%;padding:.85rem;border-radius:var(--r-pill);background:var(--green);border:none;font-size:13px;font-weight:600;letter-spacing:.04em;cursor:pointer;color:#fff;text-decoration:none;text-align:center}
+    .expired-signout{font-size:12px;color:var(--ink-3);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none}
 
     /* ── App shell ── */
-    .app{width:100%;height:100vh;height:100dvh;background:var(--bg-card);display:none;flex-direction:column;overflow:hidden}
+    .app{width:100%;height:100vh;height:100dvh;background:var(--paper);display:none;flex-direction:column;overflow:hidden}
     .app.visible{display:flex}
-    @media(min-width:768px){.app{width:430px;height:820px;border-radius:var(--r-lg);border:0.5px solid var(--border-2);box-shadow:0 24px 80px rgba(0,0,0,.10),0 4px 16px rgba(0,0,0,.06)}}
-    .header{flex-shrink:0;padding:calc(1.1rem + env(safe-area-inset-top,0px)) 1.25rem .9rem;background:var(--bg-card);border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:.75rem}
-    .header-center{flex:1;display:flex;flex-direction:column;align-items:center}
-    .header-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;line-height:1}
-    .header-date{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-top:3px}
-    .header-icon{color:var(--text-2);flex-shrink:0}
-    .logout-btn{background:none;border:0.5px solid var(--border-2);border-radius:var(--r-pill);padding:5px 12px;font-family:'DM Sans',sans-serif;font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
-    .logout-btn:hover{background:var(--bg-muted)}
+    @media(min-width:768px){.app{width:430px;height:860px;border-radius:28px;box-shadow:0 30px 90px rgba(28,36,30,.18);overflow:hidden}}
 
-    /* ── Main views ── */
+    /* slim header (Today / Pastor) */
+    .header{flex-shrink:0;padding:calc(1rem + env(safe-area-inset-top,0px)) 1.25rem .85rem;background:var(--paper);border-bottom:1px solid var(--hair);display:none;align-items:center;gap:.75rem}
+    .app.chrome .header{display:flex}
+    .header img{width:30px;height:30px;border-radius:7px;flex-shrink:0}
+    .header-center{flex:1;display:flex;flex-direction:column;align-items:center}
+    .header-name{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;line-height:1}
+    .header-date{font-size:10.5px;color:var(--ink-3);margin-top:3px}
+    .signout-btn{background:none;border:1px solid var(--hair-2);border-radius:var(--r-pill);padding:6px 13px;font-size:11px;font-weight:500;color:var(--ink-2);cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+
     .main{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
     .mview{display:none;flex:1;flex-direction:column;overflow:hidden}
     .mview.active{display:flex;animation:rise .22s ease}
     @keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+    @media(prefers-reduced-motion:reduce){.mview.active{animation:none}}
 
-    /* Today sub-tabs */
-    .tab-bar{flex-shrink:0;display:flex;gap:6px;padding:.7rem 1rem;background:var(--bg-card);border-bottom:0.5px solid var(--border)}
-    .tab-pill{flex:1;padding:.5rem .5rem;border-radius:var(--r-pill);border:0.5px solid var(--border-2);background:transparent;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:var(--text-2);transition:all .2s;-webkit-tap-highlight-color:transparent}
+    /* ══ HOME ══ */
+    #mv-home{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:none;background:var(--sheet)}
+    #mv-home.active{display:block}
+    .hero{background:linear-gradient(168deg,var(--green) 0%,var(--green-deep) 100%);padding:calc(1.1rem + env(safe-area-inset-top,0px)) 1.4rem 4.4rem;color:#fff;border-radius:0 0 28px 28px}
+    .hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+    .hero-top img{width:34px;height:34px;border-radius:8px}
+    .hero-signout{background:rgba(255,255,255,.14);border:none;border-radius:var(--r-pill);padding:7px 14px;font-size:11px;font-weight:500;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .hero-greet{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:600;line-height:1.1;letter-spacing:.005em}
+    .hero-sub{font-size:13.5px;font-weight:300;color:rgba(255,255,255,.82);margin-top:7px}
+
+    .home-body{padding:0 1.1rem calc(1.5rem + env(safe-area-inset-bottom,0px));margin-top:-3rem}
+
+    /* hero pastor card — the one bold moment */
+    .pastor-hero{display:flex;align-items:center;gap:14px;background:var(--paper);border-radius:var(--r-lg);padding:1.15rem 1.15rem;box-shadow:var(--shadow-card);border:none;width:100%;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+    .pastor-hero-icon{width:50px;height:50px;border-radius:14px;background:var(--green-wash);display:flex;align-items:center;justify-content:center;color:var(--green);flex-shrink:0}
+    .pastor-hero-text{flex:1;min-width:0}
+    .pastor-hero-text h2{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;color:var(--ink);line-height:1.15}
+    .pastor-hero-text p{font-size:12.5px;font-weight:300;color:var(--ink-2);margin-top:3px;line-height:1.45}
+    .pastor-hero-go{width:40px;height:40px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+    .home-label{font-size:12px;font-weight:600;color:var(--ink-2);letter-spacing:.02em;margin:1.6rem 4px .7rem}
+
+    /* today's walk — flat hairline rows */
+    .walk{background:var(--paper);border-radius:var(--r-md);border:1px solid var(--hair);overflow:hidden}
+    .walk-row{display:flex;align-items:center;gap:12px;width:100%;padding:.95rem 1.05rem;background:none;border:none;border-bottom:1px solid var(--hair);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+    .walk-row:last-child{border-bottom:none}
+    .walk-icon{width:36px;height:36px;border-radius:10px;background:var(--green-wash);color:var(--green);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .walk-text{flex:1;min-width:0}
+    .walk-text h3{font-size:14.5px;font-weight:500;color:var(--ink)}
+    .walk-text p{font-size:11.5px;font-weight:300;color:var(--ink-3);margin-top:1px}
+    .walk-state{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--ink-3);flex-shrink:0}
+    .walk-state.done{color:var(--green)}
+
+    /* quick action pair */
+    .quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+    .quick-card{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-md);padding:1rem .95rem;display:flex;flex-direction:column;gap:.35rem;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+    .quick-card h3{font-family:'Cormorant Garamond',serif;font-size:18.5px;font-weight:600;color:var(--ink);line-height:1.2}
+    .quick-card p{font-size:12px;font-weight:300;color:var(--ink-2);line-height:1.5;flex:1}
+    .quick-card span{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;margin-top:.55rem;background:var(--green);color:#fff;border-radius:var(--r-pill);padding:7px 15px;font-size:11.5px;font-weight:600}
+
+    /* streak CTA — inverse green card */
+    .streak-cta{background:linear-gradient(160deg,var(--green) 0%,var(--green-deep) 100%);border-radius:var(--r-lg);padding:1.3rem 1.2rem;margin-top:1.4rem;color:#fff}
+    .streak-cta-tag{font-size:11px;font-weight:600;color:rgba(255,255,255,.75);letter-spacing:.04em}
+    .streak-cta h3{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;margin-top:5px;line-height:1.2}
+    .streak-cta p{font-size:12.5px;font-weight:300;color:rgba(255,255,255,.85);margin-top:5px;line-height:1.55}
+    .streak-cta button{width:100%;margin-top:.95rem;padding:.8rem;border-radius:var(--r-pill);background:#fff;color:var(--green-deep);border:none;font-size:12.5px;font-weight:600;letter-spacing:.03em;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+    /* ══ TODAY ══ */
+    .tab-bar{flex-shrink:0;display:flex;gap:6px;padding:.75rem 1rem;background:var(--paper);border-bottom:1px solid var(--hair)}
+    .tab-pill{flex:1;padding:.55rem .5rem;border-radius:var(--r-pill);border:1px solid var(--hair-2);background:var(--paper);font-size:12px;font-weight:500;cursor:pointer;color:var(--ink-2);transition:all .2s;-webkit-tap-highlight-color:transparent}
     .tab-pill.active{background:var(--green);color:#fff;border-color:var(--green)}
-    .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:1.1rem 1rem 1.5rem}
+    .content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:1.1rem 1rem;padding-bottom:calc(1.5rem + env(safe-area-inset-bottom,0px));background:var(--sheet)}
     .tab-panel{display:none;flex-direction:column;gap:.8rem}
     .tab-panel.active{display:flex;animation:rise .22s ease}
-    .card{background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:var(--r-md);padding:1.3rem 1.2rem}
-    .card-accent{border-left:2.5px solid var(--green);border-radius:0 var(--r-md) var(--r-md) 0;padding-left:1.1rem}
-    .card-muted{background:var(--bg-muted);border-color:transparent}
-    .tag{font-size:9.5px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:.9rem;display:flex;align-items:center;gap:8px}
-    .tag::after{content:'';flex:1;height:0.5px;background:var(--border-2)}
-    .prayer-badge{display:inline-flex;align-items:center;gap:5px;background:var(--bg-muted);border-radius:var(--r-pill);padding:3px 10px;font-size:10px;color:var(--text-3);margin-bottom:1rem}
-    .prayer-body{font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.9;font-style:italic}
-    .reflect{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:var(--text-2);text-align:center;line-height:1.6;min-height:1.5rem}
-    .verse-body{font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.85;font-style:italic}
-    .verse-ref{font-size:11px;color:var(--text-2);text-align:right;margin-top:.65rem;letter-spacing:.05em}
-    .devot-body{font-size:13.5px;font-weight:300;line-height:1.8}
-    .j-prompt{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;line-height:1.45;text-align:center}
-    textarea.j-area{width:100%;min-height:108px;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.7;resize:none;border:0.5px solid var(--border-2);border-radius:var(--r-sm);padding:.8rem;color:var(--text);background:var(--bg-muted);font-weight:300;-webkit-appearance:none}
-    textarea.j-area:focus{outline:none;border-color:var(--text-3)}
+    .card{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-md);padding:1.3rem 1.2rem}
+    .card-accent{border-left:3px solid var(--green)}
+    .tag{font-size:11px;font-weight:600;color:var(--ink-2);margin-bottom:.9rem;display:flex;align-items:center;gap:8px}
+    .tag::after{content:'';flex:1;height:1px;background:var(--hair)}
+    .prayer-badge{display:inline-flex;align-items:center;gap:5px;background:var(--green-wash);border-radius:var(--r-pill);padding:4px 11px;font-size:10.5px;color:var(--green);font-weight:500;margin-bottom:1rem}
+    .prayer-body{font-family:'Cormorant Garamond',serif;font-size:21px;line-height:1.85;font-style:italic;color:var(--ink)}
+    .reflect{font-family:'Cormorant Garamond',serif;font-size:15.5px;font-style:italic;color:var(--ink-2);text-align:center;line-height:1.6;min-height:1.5rem}
+    .verse-body{font-family:'Cormorant Garamond',serif;font-size:19px;line-height:1.85;font-style:italic;color:var(--ink)}
+    .verse-ref{font-size:11.5px;color:var(--ink-2);text-align:right;margin-top:.65rem}
+    .devot-body{font-size:14px;font-weight:300;line-height:1.85;color:var(--ink)}
+    .j-prompt{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;line-height:1.4;text-align:center;color:var(--ink)}
+    textarea.j-area{width:100%;min-height:110px;font-family:'DM Sans',sans-serif;font-size:14.5px;line-height:1.7;resize:none;border:1px solid var(--hair-2);border-radius:var(--r-sm);padding:.85rem;color:var(--ink);background:var(--paper);font-weight:300;-webkit-appearance:none}
+    textarea.j-area:focus{outline:none;border-color:var(--green)}
+    textarea.j-area::placeholder{color:var(--ink-3)}
     .char-row{display:flex;justify-content:flex-end;margin-top:5px}
-    .char-txt{font-size:10px;color:var(--text-3)}
+    .char-txt{font-size:10.5px;color:var(--ink-3)}
     .streak-wrap{text-align:center}
-    .streak-badge{display:inline-flex;gap:6px;background:var(--bg-muted);border-radius:var(--r-pill);padding:5px 14px;font-size:11px;color:var(--green);font-weight:500}
-    .entry{padding:.9rem 0;border-bottom:0.5px solid var(--border);display:flex;flex-direction:column;gap:5px}
+    .streak-badge{display:inline-flex;gap:6px;background:var(--green-wash);border-radius:var(--r-pill);padding:6px 15px;font-size:11.5px;color:var(--green);font-weight:500}
+    .entry{padding:.9rem 0;border-bottom:1px solid var(--hair);display:flex;flex-direction:column;gap:5px}
     .entry:first-of-type{padding-top:0}.entry:last-child{border-bottom:none;padding-bottom:0}
-    .entry-meta-row{display:flex;align-items:center;gap:6px}
-    .dot{width:5px;height:5px;border-radius:50%;background:var(--text-3);flex-shrink:0}
-    .entry-meta{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)}
-    .entry-text{font-size:13.5px;font-weight:300;line-height:1.65;padding-left:11px}
-    .entries-count{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-3);margin-bottom:.5rem}
-    .empty-msg{font-family:'Cormorant Garamond',serif;font-size:16px;font-style:italic;color:var(--text-3);text-align:center;padding:1.25rem 0}
-    .btn-outline{width:100%;padding:.72rem;border-radius:var(--r-pill);background:transparent;border:0.5px solid var(--border-2);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--text);-webkit-tap-highlight-color:transparent}
-    .btn-outline:hover{background:var(--bg-muted)}
-    .save-btn{width:100%;padding:.75rem;border-radius:var(--r-pill);background:var(--green);border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;color:var(--bg-card);margin-top:.85rem;-webkit-tap-highlight-color:transparent}
-    .save-btn:disabled{opacity:.5}
-    .ghost{height:14px;border-radius:4px;background:var(--border-2);margin-bottom:10px;animation:shimmer 1.4s ease-in-out infinite}
+    .entry-meta-row{display:flex;align-items:center;gap:7px}
+    .dot{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0}
+    .entry-meta{font-size:10.5px;color:var(--ink-3)}
+    .entry-text{font-size:14px;font-weight:300;line-height:1.65;padding-left:12px;color:var(--ink)}
+    .entries-count{font-size:11px;color:var(--ink-3);margin-bottom:.5rem}
+    .empty-msg{font-family:'Cormorant Garamond',serif;font-size:16.5px;font-style:italic;color:var(--ink-3);text-align:center;padding:1.25rem 0}
+    .btn-outline{width:100%;padding:.78rem;border-radius:var(--r-pill);background:var(--paper);border:1px solid var(--green);font-size:12.5px;font-weight:600;letter-spacing:.03em;cursor:pointer;color:var(--green);transition:background .18s;-webkit-tap-highlight-color:transparent}
+    .btn-outline:active{background:var(--green-wash)}
+    .save-btn{width:100%;padding:.82rem;border-radius:var(--r-pill);background:var(--green);border:none;font-size:12.5px;font-weight:600;letter-spacing:.03em;cursor:pointer;color:#fff;margin-top:.85rem;-webkit-tap-highlight-color:transparent}
+    .save-btn:active{background:var(--green-deep)}
+    .save-btn:disabled{opacity:.55}
+    .ghost{height:14px;border-radius:4px;background:var(--hair);margin-bottom:10px;animation:shimmer 1.4s ease-in-out infinite}
     .ghost.s{width:55%}
-    @keyframes shimmer{0%,100%{opacity:.3}50%{opacity:.65}}
-    .toast{font-size:11.5px;color:var(--text-2);text-align:center;height:1.3rem;opacity:0;transition:opacity .3s;margin-top:.4rem}
+    @keyframes shimmer{0%,100%{opacity:.45}50%{opacity:1}}
+    .toast{font-size:12px;color:var(--green);text-align:center;height:1.3rem;opacity:0;transition:opacity .3s;margin-top:.4rem;font-weight:500}
     .toast.show{opacity:1}
 
-    /* ── Pastor chat ── */
-    .chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    /* ══ PASTOR ══ */
+    .chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--sheet)}
     .chat-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1.1rem 1rem;display:flex;flex-direction:column;gap:.8rem}
     .chat-intro{text-align:center;padding:1.5rem .75rem 1rem;display:flex;flex-direction:column;align-items:center;gap:.5rem}
-    .chat-intro-icon{width:52px;height:52px;border-radius:50%;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;color:var(--text-2);margin-bottom:.25rem}
-    .chat-intro h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500}
-    .chat-intro p{font-size:12.5px;font-weight:300;color:var(--text-2);line-height:1.7;max-width:300px}
+    .chat-intro-icon{width:56px;height:56px;border-radius:50%;background:var(--green-wash);display:flex;align-items:center;justify-content:center;color:var(--green);margin-bottom:.25rem}
+    .chat-intro h2{font-family:'Cormorant Garamond',serif;font-size:25px;font-weight:600;color:var(--ink)}
+    .chat-intro p{font-size:13px;font-weight:300;color:var(--ink-2);line-height:1.7;max-width:300px}
     .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:.75rem}
-    .chip{background:var(--bg-muted);border:0.5px solid var(--border);border-radius:var(--r-pill);padding:8px 14px;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--text-2);cursor:pointer;line-height:1.4;text-align:left;-webkit-tap-highlight-color:transparent}
-    .chip:hover{border-color:var(--border-2);color:var(--text)}
-    .msg{max-width:85%;padding:.8rem 1rem;border-radius:16px;font-size:13.5px;line-height:1.7;font-weight:300;white-space:pre-wrap;word-wrap:break-word}
-    .msg.user{align-self:flex-end;background:var(--green);color:#fff;border-bottom-right-radius:5px}
-    .msg.pastor{align-self:flex-start;background:var(--bg-muted);color:var(--text);border-bottom-left-radius:5px}
-    .msg.pastor em{font-family:'Cormorant Garamond',serif;font-size:15px}
-    .typing{align-self:flex-start;background:var(--bg-muted);border-radius:16px;border-bottom-left-radius:5px;padding:.9rem 1.1rem;display:flex;gap:5px}
-    .typing i{width:5px;height:5px;border-radius:50%;background:var(--text-3);animation:dp 1.2s ease-in-out infinite}
+    .chip{background:var(--paper);border:1px solid var(--hair-2);border-radius:var(--r-pill);padding:9px 15px;font-size:12.5px;color:var(--ink-2);cursor:pointer;line-height:1.4;text-align:left;-webkit-tap-highlight-color:transparent}
+    .chip:active{border-color:var(--green);color:var(--green)}
+    .msg{max-width:85%;padding:.85rem 1.05rem;border-radius:18px;font-size:14px;line-height:1.7;font-weight:300;white-space:pre-wrap;word-wrap:break-word}
+    .msg.user{align-self:flex-end;background:var(--green);color:#fff;border-bottom-right-radius:6px}
+    .msg.pastor{align-self:flex-start;background:var(--paper);border:1px solid var(--hair);color:var(--ink);border-bottom-left-radius:6px}
+    .typing{align-self:flex-start;background:var(--paper);border:1px solid var(--hair);border-radius:18px;border-bottom-left-radius:6px;padding:.95rem 1.15rem;display:flex;gap:5px}
+    .typing i{width:5px;height:5px;border-radius:50%;background:var(--green);opacity:.5;animation:dp 1.2s ease-in-out infinite}
     .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
-    .chat-input-row{flex-shrink:0;display:flex;gap:8px;padding:.75rem 1rem calc(.75rem + 2px);border-top:0.5px solid var(--border);background:var(--bg-card);align-items:flex-end}
-    .chat-input{flex:1;max-height:110px;min-height:44px;padding:.7rem .95rem;border:0.5px solid var(--border-2);border-radius:22px;background:var(--bg-muted);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.5;color:var(--text);resize:none;-webkit-appearance:none}
-    .chat-input:focus{outline:none;border-color:var(--text-3)}
-    .chat-send{width:44px;height:44px;border-radius:50%;background:var(--green);border:none;color:var(--bg-card);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+    .chat-input-row{flex-shrink:0;display:flex;gap:8px;padding:.75rem 1rem;border-top:1px solid var(--hair);background:var(--paper);align-items:flex-end}
+    .chat-input{flex:1;max-height:110px;min-height:46px;padding:.75rem 1rem;border:1px solid var(--hair-2);border-radius:23px;background:var(--paper);font-family:'DM Sans',sans-serif;font-size:14.5px;line-height:1.5;color:var(--ink);resize:none;-webkit-appearance:none}
+    .chat-input:focus{outline:none;border-color:var(--green)}
+    .chat-input::placeholder{color:var(--ink-3)}
+    .chat-send{width:46px;height:46px;border-radius:50%;background:var(--green);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+    .chat-send:active{background:var(--green-deep)}
     .chat-send:disabled{opacity:.4}
-    .chat-clear{font-size:10px;color:var(--text-3);text-align:center;padding:.4rem 0 0;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;text-decoration:underline;text-underline-offset:2px;letter-spacing:.05em}
-    .pastor-note{font-size:10px;color:var(--text-3);text-align:center;padding:0 1.5rem .4rem;line-height:1.5}
+    .chat-clear{font-size:10.5px;color:var(--ink-3);text-align:center;padding:.45rem 0;cursor:pointer;background:var(--paper);border:none;text-decoration:underline;text-underline-offset:2px;width:100%}
+    .pastor-note{font-size:10.5px;color:var(--ink-3);text-align:center;padding:.35rem 1.5rem;line-height:1.5;background:var(--paper)}
 
-    /* ── Bottom nav ── */
-    .bottom-nav{flex-shrink:0;display:flex;background:var(--bg-card);border-top:0.5px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0px)}
-    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:.6rem 0 .5rem;background:none;border:none;cursor:pointer;color:var(--text-3);font-family:'DM Sans',sans-serif;font-size:9px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;transition:color .18s;position:relative;-webkit-tap-highlight-color:transparent}
+    /* ══ Bottom nav ══ */
+    .bottom-nav{flex-shrink:0;display:flex;background:var(--paper);border-top:1px solid var(--hair);padding-bottom:env(safe-area-inset-bottom,0px)}
+    .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:.65rem 0 .55rem;background:none;border:none;cursor:pointer;color:var(--ink-3);font-size:10px;font-weight:600;transition:color .18s;-webkit-tap-highlight-color:transparent}
     .nav-item.active{color:var(--green)}
-    .nav-item.active::before{content:'';position:absolute;top:0;left:28%;right:28%;height:2px;background:var(--green);border-radius:0 0 2px 2px}
-    .nav-item svg{width:21px;height:21px}
+    .nav-item svg{width:22px;height:22px}
+    .nav-item:focus-visible,.walk-row:focus-visible,.quick-card:focus-visible,.pastor-hero:focus-visible{outline:2px solid var(--green);outline-offset:2px}
   </style>
 </head>
 <body>
 
 <div class="loading-screen" id="loading">
-  <img src="/icons/icon-192.png" alt="" style="width:52px;height:52px;border-radius:12px">
+  <img src="/icons/icon-192.png" alt="" style="width:56px;height:56px;border-radius:13px">
   <div class="loading-logo">Rooted in Faith</div>
-  <div class="loading-sub">Bible Guide &middot; Personal Pastor</div>
+  <div class="loading-sub">Guide to the Bible · Personal Pastor</div>
   <div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>
 </div>
 
+<!-- ── Auth ── -->
 <div class="auth-wrap" id="auth-wrap">
   <div class="auth-card">
     <div class="auth-logo">
-      <img src="/icons/icon-192.png" alt="" style="width:48px;height:48px;border-radius:11px;margin-bottom:4px">
+      <img src="/icons/icon-192.png" alt="" style="width:52px;height:52px;border-radius:12px;margin-bottom:4px">
       <div class="auth-logo-name">Rooted in Faith</div>
-      <div class="auth-logo-sub">Bible Guide &middot; Personal Pastor</div>
+      <div class="auth-logo-sub">Guide to the Bible · Personal Pastor</div>
     </div>
     <div class="auth-fields" id="step-email">
-      <div style="font-size:12.5px;color:var(--text-2);text-align:center;line-height:1.6;margin-bottom:.25rem">Enter the email from your order and we'll send you a one-time sign-in code — no password needed.</div>
+      <div style="font-size:13px;color:var(--ink-2);text-align:center;line-height:1.6;margin-bottom:.25rem">Enter the email from your order and we'll send you a one-time sign-in code — no password needed.</div>
       <input class="auth-input" type="email" id="a-email" placeholder="Your order email" autocomplete="email" inputmode="email" />
       <div class="auth-msg" id="auth-msg"></div>
       <button class="btn-solid" id="send-btn" onclick="sendCode()">Email Me a Code</button>
     </div>
     <div class="auth-fields" id="step-code" style="display:none">
-      <div style="font-size:12.5px;color:var(--text-2);text-align:center;line-height:1.6;margin-bottom:.25rem">We emailed a 6-digit code to<br/><strong id="sent-to" style="color:var(--text)"></strong></div>
-      <input class="auth-input" type="text" id="a-code" placeholder="Enter 6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="text-align:center;letter-spacing:.35em;font-size:18px" />
+      <div style="font-size:13px;color:var(--ink-2);text-align:center;line-height:1.6;margin-bottom:.25rem">We emailed a 6-digit code to<br/><strong id="sent-to" style="color:var(--ink)"></strong></div>
+      <input class="auth-input" type="text" id="a-code" placeholder="Enter 6-digit code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="text-align:center;letter-spacing:.35em;font-size:19px" />
       <div class="auth-msg" id="code-msg"></div>
       <button class="btn-solid" id="verify-btn" onclick="verifyCode()">Sign In</button>
       <button class="forgot-link" style="text-align:center" onclick="resendCode()">Resend code</button>
       <button class="forgot-link" style="text-align:center" onclick="backToEmail()">Use a different email</button>
     </div>
-    <div class="auth-footer">Access requires an active membership.<br/><a href="https://rootedinfaith.co" target="_blank">Purchase a membership →</a></div>
+    <div class="auth-footer">
+      Access requires an active membership.<br/>
+      <a href="https://rootedinfaith.co" target="_blank">Purchase a membership</a>
+    </div>
   </div>
 </div>
 
+<!-- ── Expired ── -->
 <div class="expired-wrap" id="expired-wrap">
   <div class="expired-card">
-    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" style="color:var(--text-3)"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" style="color:var(--ink-3)"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.2"/><path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
     <div class="expired-title">Membership Inactive</div>
     <div class="expired-body">Your membership is no longer active. Renew to continue — your journal and progress are saved and waiting for you.</div>
     <a class="btn-renew" href="https://rootedinfaith.co" target="_blank">Renew Membership</a>
@@ -202,37 +267,107 @@
   </div>
 </div>
 
+<!-- ── App ── -->
 <div class="app" id="app">
+
   <div class="header">
-    <img src="/icons/icon-192.png" alt="" style="width:30px;height:30px;border-radius:7px;flex-shrink:0">
+    <img src="/icons/icon-192.png" alt="">
     <div class="header-center">
-      <div class="header-name" id="hdr-title">Rooted in Faith</div>
+      <div class="header-name" id="hdr-title">Today</div>
       <div class="header-date" id="hdr-date"></div>
     </div>
-    <button class="logout-btn" onclick="handleLogout()">Sign Out</button>
+    <button class="signout-btn" onclick="handleLogout()">Sign Out</button>
   </div>
 
   <div class="main">
 
+    <!-- ══ HOME ══ -->
+    <div class="mview" id="mv-home">
+      <div class="hero">
+        <div class="hero-top">
+          <img src="/icons/icon-192.png" alt="">
+          <button class="hero-signout" onclick="handleLogout()">Sign Out</button>
+        </div>
+        <div class="hero-greet" id="hero-greet">Good morning</div>
+        <div class="hero-sub" id="hero-sub">Walk with Him today.</div>
+      </div>
+      <div class="home-body">
+
+        <button class="pastor-hero" onclick="switchMain('pastor')">
+          <div class="pastor-hero-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M21 12a8.5 8.5 0 01-8.5 8.5c-1.3 0-2.6-.3-3.7-.8L3 21l1.3-5.8c-.5-1.1-.8-2.4-.8-3.7A8.5 8.5 0 1121 12z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="pastor-hero-text">
+            <h2>Talk to your Pastor</h2>
+            <p>Whatever's on your heart, Scripture has an answer.</p>
+          </div>
+          <div class="pastor-hero-go">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </button>
+
+        <div class="home-label">Today's walk</div>
+        <div class="walk">
+          <button class="walk-row" onclick="goToday('prayer')">
+            <div class="walk-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5 5l2.1 2.1M16.9 16.9L19 19M19 5l-2.1 2.1M7.1 16.9L5 19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></div>
+            <div class="walk-text"><h3>Daily prayer</h3><p>Fresh every morning, 1 min</p></div>
+            <div class="walk-state"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </button>
+          <button class="walk-row" onclick="goToday('devotional')">
+            <div class="walk-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2 6c0-1.1.9-2 2-2h7v16H4a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.6"/><path d="M22 6c0-1.1-.9-2-2-2h-7v16h7a2 2 0 002-2V6z" stroke="currentColor" stroke-width="1.6"/></svg></div>
+            <div class="walk-text"><h3>Devotional</h3><p>Scripture + reflection, 3 min</p></div>
+            <div class="walk-state"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </button>
+          <button class="walk-row" onclick="goToday('journal')">
+            <div class="walk-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="walk-text"><h3>Gratitude journal</h3><p id="journal-row-sub">What are you grateful for today?</p></div>
+            <div class="walk-state" id="journal-row-state"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          </button>
+        </div>
+
+        <div class="home-label">Whenever you need it</div>
+        <div class="quick-grid">
+          <button class="quick-card" onclick="askPastor(&quot;What's on my heart today is &quot;)">
+            <h3>What's on your heart?</h3>
+            <p>Share it. Your Pastor will listen and pray with you.</p>
+            <span>Check in</span>
+          </button>
+          <button class="quick-card" onclick="askPastor('Help me understand this verse: ')">
+            <h3>Confused by a verse?</h3>
+            <p>Paste any verse, get it explained simply.</p>
+            <span>Ask</span>
+          </button>
+        </div>
+
+        <div class="streak-cta">
+          <div class="streak-cta-tag" id="cta-tag">Build the habit</div>
+          <h3 id="cta-title">Begin your gratitude streak</h3>
+          <p id="cta-body">One entry a day changes how you see everything. Start with today.</p>
+          <button onclick="goToday('journal')" id="cta-btn">Write today's entry</button>
+        </div>
+
+      </div>
+    </div>
+
     <!-- ══ TODAY ══ -->
-    <div class="mview active" id="mv-today">
+    <div class="mview" id="mv-today">
       <div class="tab-bar">
-        <button class="tab-pill active" onclick="go('prayer',this)">Prayer</button>
-        <button class="tab-pill"        onclick="go('devotional',this)">Devotional</button>
-        <button class="tab-pill"        onclick="go('journal',this)">Journal</button>
+        <button class="tab-pill" id="pill-prayer"     onclick="go('prayer')">Prayer</button>
+        <button class="tab-pill" id="pill-devotional" onclick="go('devotional')">Devotional</button>
+        <button class="tab-pill" id="pill-journal"    onclick="go('journal')">Journal</button>
       </div>
       <div class="content">
         <div class="tab-panel active" id="tab-prayer">
           <div class="card">
-            <div class="tag">Daily Prayer</div>
+            <div class="tag">Daily prayer</div>
             <div class="prayer-badge">
-              <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><circle cx="4.5" cy="4.5" r="3.5" stroke="currentColor" stroke-width=".8"/><path d="M4.5 2.5v2l1.2 1" stroke="currentColor" stroke-width=".8" stroke-linecap="round"/></svg>
+              <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><circle cx="4.5" cy="4.5" r="3.5" stroke="currentColor" stroke-width=".9"/><path d="M4.5 2.5v2l1.2 1" stroke="currentColor" stroke-width=".9" stroke-linecap="round"/></svg>
               <span id="badge-txt">Loading…</span>
             </div>
             <div class="prayer-body" id="prayer-body"><div class="ghost"></div><div class="ghost"></div><div class="ghost s"></div></div>
           </div>
           <div class="reflect" id="reflect-body"></div>
-          <button class="btn-outline" onclick="refreshPrayer()">Generate New Prayer</button>
+          <button class="btn-outline" onclick="refreshPrayer()">Generate new prayer</button>
         </div>
         <div class="tab-panel" id="tab-devotional">
           <div class="card card-accent">
@@ -246,7 +381,7 @@
           </div>
         </div>
         <div class="tab-panel" id="tab-journal">
-          <div class="card card-muted" style="text-align:center;padding:1.4rem 1.2rem">
+          <div class="card" style="text-align:center;padding:1.4rem 1.2rem;background:var(--green-wash);border-color:transparent">
             <div class="j-prompt" id="j-prompt">What are you grateful for today?</div>
           </div>
           <div class="streak-wrap" id="streak-wrap" style="display:none"><div class="streak-badge" id="streak-badge"></div></div>
@@ -254,11 +389,11 @@
             <div class="tag">Write</div>
             <textarea class="j-area" id="j-input" placeholder="Write what's on your heart…" maxlength="500" oninput="upChar()"></textarea>
             <div class="char-row"><span class="char-txt"><span id="char-ct">0</span> / 500</span></div>
-            <button class="save-btn" id="save-btn" onclick="saveEntry()">Save Entry</button>
+            <button class="save-btn" id="save-btn" onclick="saveEntry()">Save entry</button>
             <div class="toast" id="toast">Entry saved — well done.</div>
           </div>
           <div class="card">
-            <div class="tag">Your Entries</div>
+            <div class="tag">Your entries</div>
             <div id="entries-list"><div class="empty-msg">Your gratitude entries will live here.</div></div>
           </div>
         </div>
@@ -271,7 +406,7 @@
         <div class="chat-scroll" id="chat-scroll">
           <div class="chat-intro" id="chat-intro">
             <div class="chat-intro-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M4 8h16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 2v20M4 8h16" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
             </div>
             <h2>Your Pastor Companion</h2>
             <p>Ask anything about the Bible, faith, or what you're walking through. Grounded in Scripture, here any hour.</p>
@@ -296,23 +431,27 @@
 
   </div>
 
-  <!-- ══ BOTTOM NAV ══ -->
+  <!-- ══ Bottom nav ══ -->
   <div class="bottom-nav">
-    <button class="nav-item active" id="nav-today" onclick="switchMain('today')">
-      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <button class="nav-item active" id="nav-home" onclick="switchMain('home')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5M5 9.5V21h14V9.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button class="nav-item" id="nav-today" onclick="switchMain('today')">
+      <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
       Today
     </button>
     <button class="nav-item" id="nav-pastor" onclick="switchMain('pastor')">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M21 12a8.5 8.5 0 01-8.5 8.5c-1.3 0-2.6-.3-3.7-.8L3 21l1.3-5.8c-.5-1.1-.8-2.4-.8-3.7A8.5 8.5 0 1121 12z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" fill="none"><path d="M21 12a8.5 8.5 0 01-8.5 8.5c-1.3 0-2.6-.3-3.7-.8L3 21l1.3-5.8c-.5-1.1-.8-2.4-.8-3.7A8.5 8.5 0 1121 12z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Pastor
     </button>
   </div>
 </div>
 
 <script>
-
 const{createClient}=supabase;
-let sb=null,currentUser=null,authMode='login',devotLoaded=false,promptLoaded=false;
+let sb=null,currentUser=null,devotLoaded=false,promptLoaded=false;
+let userStreak=0,journalDoneToday=false;
 const NOW=new Date(),TODAY_KEY=NOW.toISOString().split('T')[0];
 document.getElementById('hdr-date').textContent=NOW.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 const K={prayer:'mg_prayer_'+TODAY_KEY,reflect:'mg_reflect_'+TODAY_KEY,devot:'mg_devot_'+TODAY_KEY,prompt:'mg_prompt_'+TODAY_KEY,chat:'mg_pastor_chat'};
@@ -349,6 +488,7 @@ async function handleSSOToken(token){
   }
 }
 
+/* ── Passwordless auth ── */
 let pendingEmail='';
 function showMsg(text,ok=false,el='auth-msg'){
   const m=document.getElementById(el);
@@ -407,9 +547,9 @@ async function handleLogout(){
   document.getElementById('expired-wrap').classList.remove('visible');
   showAuth();
 }
-function showAuth(){document.getElementById('auth-wrap').classList.add('visible');}
+function showAuth(){setTheme('#FFFFFF');document.getElementById('auth-wrap').classList.add('visible');}
 function showExpired(){
-  hideLoading();
+  hideLoading();setTheme('#FFFFFF');
   document.getElementById('auth-wrap').classList.remove('visible');
   document.getElementById('app').classList.remove('visible');
   document.getElementById('expired-wrap').classList.add('visible');
@@ -424,28 +564,82 @@ function showApp(){
   document.getElementById('auth-wrap').classList.remove('visible');
   document.getElementById('expired-wrap').classList.remove('visible');
   document.getElementById('app').classList.add('visible');
+  renderGreeting();
+  switchMain('home');
   loadPrayer();renderEntries();renderChat();
 }
 
-/* ── Main nav ── */
-const TITLES={today:'Rooted in Faith',pastor:'Pastor'};
+/* ── Theme-color (status bar matches the view) ── */
+function setTheme(c){document.getElementById('theme-meta').setAttribute('content',c);}
+
+/* ── Greeting + home stats ── */
+function renderGreeting(){
+  const h=NOW.getHours();
+  const word=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const first=(currentUser&&currentUser.user_metadata&&currentUser.user_metadata.first_name)||'';
+  document.getElementById('hero-greet').textContent=first?`${word}, ${first}`:word;
+  renderHomeStats();
+}
+function renderHomeStats(){
+  const sub=document.getElementById('hero-sub');
+  if(userStreak>0){
+    sub.textContent=`Day ${userStreak} of walking in gratitude.`;
+  }else{
+    sub.textContent='Walk with Him today.';
+  }
+  const rowSub=document.getElementById('journal-row-sub');
+  const rowState=document.getElementById('journal-row-state');
+  if(journalDoneToday){
+    rowSub.textContent='Done for today — well done';
+    rowState.className='walk-state done';
+    rowState.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  const tag=document.getElementById('cta-tag'),title=document.getElementById('cta-title'),body=document.getElementById('cta-body'),btn=document.getElementById('cta-btn');
+  if(journalDoneToday){
+    tag.textContent='Streak alive';
+    title.textContent=userStreak>1?`${userStreak} days of gratitude`:'Day 1 is in the books';
+    body.textContent='Come back tomorrow morning — a fresh prayer will be waiting for you.';
+    btn.textContent='Read your entries';
+  }else if(userStreak>0){
+    tag.textContent='Keep it going';
+    title.textContent=`Your ${userStreak}-day streak is on the line`;
+    body.textContent='One entry keeps it alive. What are you grateful for today?';
+    btn.textContent='Write today\'s entry';
+  }
+}
+
+/* ── Nav ── */
+const TITLES={today:'Today',pastor:'Pastor'};
 function switchMain(v){
-  ['today','pastor'].forEach(x=>{
+  ['home','today','pastor'].forEach(x=>{
     document.getElementById('mv-'+x).classList.toggle('active',x===v);
     document.getElementById('nav-'+x).classList.toggle('active',x===v);
   });
-  document.getElementById('hdr-title').textContent=TITLES[v];
+  const app=document.getElementById('app');
+  app.classList.toggle('chrome',v!=='home');
+  if(v!=='home')document.getElementById('hdr-title').textContent=TITLES[v];
+  setTheme(v==='home'?'#2E5D3A':'#FFFFFF');
+  if(v==='home')renderHomeStats();
   if(v==='pastor')setTimeout(()=>document.getElementById('chat-scroll').scrollTop=1e6,50);
 }
-
-
-/* ── Today sub-tabs ── */
-function go(tab,btn){
+function goToday(sub){
+  switchMain('today');
+  go(sub);
+}
+function go(tab){
   document.querySelectorAll('#mv-today .tab-panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#mv-today .tab-pill').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+tab).classList.add('active');btn.classList.add('active');
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('pill-'+tab).classList.add('active');
   if(tab==='devotional'&&!devotLoaded)loadDevot();
   if(tab==='journal'){renderEntries();if(!promptLoaded)loadPrompt();}
+}
+function askPastor(starter){
+  switchMain('pastor');
+  const input=document.getElementById('chat-input');
+  input.value=starter;
+  autoGrow(input);
+  setTimeout(()=>{input.focus();input.setSelectionRange(input.value.length,input.value.length);},100);
 }
 
 /* ── AI proxy ── */
@@ -494,8 +688,8 @@ async function loadDevot(){
   }
 }
 function renderDevot(d){
-  document.getElementById('verse-body').textContent='\u201C'+d.verse+'\u201D';
-  document.getElementById('verse-ref').textContent='\u2014 '+d.reference;
+  document.getElementById('verse-body').textContent='“'+d.verse+'”';
+  document.getElementById('verse-ref').textContent='— '+d.reference;
   document.getElementById('devot-body').textContent=d.devotional;
 }
 
@@ -530,10 +724,19 @@ async function renderEntries(){
   if(!currentUser)return;
   const list=document.getElementById('entries-list');
   const{data:entries,error}=await sb.from('journal_entries').select('*').eq('user_id',currentUser.id).order('created_at',{ascending:false});
-  if(error||!entries||!entries.length){list.innerHTML='<div class="empty-msg">Your gratitude entries will live here.</div>';document.getElementById('streak-wrap').style.display='none';return;}
-  const streak=calcStreak(entries);
+  if(error||!entries||!entries.length){
+    list.innerHTML='<div class="empty-msg">Your gratitude entries will live here.</div>';
+    document.getElementById('streak-wrap').style.display='none';
+    userStreak=0;journalDoneToday=false;renderHomeStats();return;
+  }
+  userStreak=calcStreak(entries);
+  journalDoneToday=entries.some(e=>{
+    const d=new Date(e.created_at);
+    return d.toDateString()===NOW.toDateString();
+  });
+  renderHomeStats();
   const sw=document.getElementById('streak-wrap');
-  if(streak>0){sw.style.display='block';document.getElementById('streak-badge').textContent=streak===1?'1 day streak — keep going!':streak+' day streak — beautiful consistency';}
+  if(userStreak>0){sw.style.display='block';document.getElementById('streak-badge').textContent=userStreak===1?'1 day streak — keep going!':userStreak+' day streak — beautiful consistency';}
   else sw.style.display='none';
   list.innerHTML=`<div class="entries-count">${entries.length} entr${entries.length===1?'y':'ies'}</div>`+
     entries.map(e=>`<div class="entry"><div class="entry-meta-row"><div class="dot"></div><div class="entry-meta">${e.date_label} &middot; ${e.time_label}</div></div><div class="entry-text">${e.text}</div></div>`).join('');
@@ -546,7 +749,7 @@ function calcStreak(entries){
   return streak;
 }
 
-/* ── PASTOR CHAT ── */
+/* ── Pastor chat ── */
 const PASTOR_SYSTEM=`You are a warm, wise pastoral companion for members of Rooted in Faith, a Christian community. You are like a trusted pastor who is available any hour.
 
 How you serve:
@@ -608,7 +811,6 @@ async function sendPastor(){
   }catch(e){
     chatHistory.push({role:'assistant',content:'I\'m sorry — I had trouble responding just now. Please try again in a moment.'});
   }
-  // keep history manageable
   if(chatHistory.length>40)chatHistory=chatHistory.slice(-40);
   try{localStorage.setItem(K.chat,JSON.stringify(chatHistory));}catch(e){}
   sendBtn.disabled=false;
@@ -636,27 +838,27 @@ if('serviceWorker' in navigator){
 }
 </script>
 
-<!-- ══ INSTALL BANNER ══ -->
+<!-- ══ Install banner ══ -->
 <style>
-  .pwa-banner{position:fixed;left:50%;top:calc(.75rem + env(safe-area-inset-top,0px));transform:translateX(-50%) translateY(-150%);width:min(380px,calc(100vw - 2rem));background:var(--bg-card);border:0.5px solid var(--border-2);border-radius:18px;box-shadow:0 12px 40px rgba(0,0,0,.18);padding:1rem 1.1rem;display:flex;align-items:center;gap:12px;z-index:300;transition:transform .35s cubic-bezier(.2,.9,.3,1)}
+  .pwa-banner{position:fixed;left:50%;top:calc(.75rem + env(safe-area-inset-top,0px));transform:translateX(-50%) translateY(-150%);width:min(380px,calc(100vw - 2rem));background:var(--paper);border:1px solid var(--hair-2);border-radius:18px;box-shadow:0 12px 40px rgba(28,36,30,.18);padding:1rem 1.1rem;display:flex;align-items:center;gap:12px;z-index:300;transition:transform .35s cubic-bezier(.2,.9,.3,1)}
   .pwa-banner.show{transform:translateX(-50%) translateY(0)}
-  .pwa-banner-icon{width:42px;height:42px;border-radius:10px;flex-shrink:0;background:var(--bg-muted);overflow:hidden}
+  .pwa-banner-icon{width:42px;height:42px;border-radius:10px;flex-shrink:0;overflow:hidden}
   .pwa-banner-icon img{width:100%;height:100%;object-fit:cover}
   .pwa-banner-text{flex:1;min-width:0}
-  .pwa-banner-title{font-size:13.5px;font-weight:600;line-height:1.3}
-  .pwa-banner-sub{font-size:11.5px;color:var(--text-3);line-height:1.4;margin-top:2px}
-  .pwa-banner-btn{flex-shrink:0;background:var(--green);color:#fff;border:none;border-radius:50px;padding:8px 16px;font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}
-  .pwa-banner-close{position:absolute;top:6px;right:10px;background:none;border:none;color:var(--text-3);font-size:16px;cursor:pointer;padding:4px;line-height:1}
-  .pwa-ios-sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:310;display:none;align-items:flex-end;justify-content:center}
+  .pwa-banner-title{font-size:13.5px;font-weight:600;line-height:1.3;color:var(--ink)}
+  .pwa-banner-sub{font-size:11.5px;color:var(--ink-3);line-height:1.4;margin-top:2px}
+  .pwa-banner-btn{flex-shrink:0;background:var(--green);color:#fff;border:none;border-radius:50px;padding:8px 16px;font-size:11.5px;font-weight:600;cursor:pointer}
+  .pwa-banner-close{position:absolute;top:6px;right:10px;background:none;border:none;color:var(--ink-3);font-size:16px;cursor:pointer;padding:4px;line-height:1}
+  .pwa-ios-sheet{position:fixed;inset:0;background:rgba(28,36,30,.45);z-index:310;display:none;align-items:flex-end;justify-content:center}
   .pwa-ios-sheet.show{display:flex}
-  .pwa-ios-card{width:100%;max-width:440px;background:var(--bg-card);border-radius:22px 22px 0 0;padding:1.75rem 1.5rem calc(1.75rem + env(safe-area-inset-bottom,0px));text-align:center;animation:sheetUp .3s ease}
+  .pwa-ios-card{width:100%;max-width:440px;background:var(--paper);border-radius:22px 22px 0 0;padding:1.75rem 1.5rem calc(1.75rem + env(safe-area-inset-bottom,0px));text-align:center;animation:sheetUp .3s ease}
   @keyframes sheetUp{from{transform:translateY(40px);opacity:0}to{transform:translateY(0);opacity:1}}
-  .pwa-ios-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:.4rem}
-  .pwa-ios-sub{font-size:13px;color:var(--text-2);line-height:1.6;margin-bottom:1.25rem}
+  .pwa-ios-title{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;margin-bottom:.4rem;color:var(--ink)}
+  .pwa-ios-sub{font-size:13px;color:var(--ink-2);line-height:1.6;margin-bottom:1.25rem}
   .pwa-ios-steps{text-align:left;display:flex;flex-direction:column;gap:.9rem;margin-bottom:1.5rem}
-  .pwa-ios-step{display:flex;align-items:center;gap:12px;font-size:13.5px}
-  .pwa-ios-num{width:24px;height:24px;border-radius:50%;background:var(--bg-muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
-  .pwa-ios-done{width:100%;padding:.8rem;border-radius:50px;background:var(--green);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+  .pwa-ios-step{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--ink)}
+  .pwa-ios-num{width:24px;height:24px;border-radius:50%;background:var(--green-wash);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+  .pwa-ios-done{width:100%;padding:.8rem;border-radius:50px;background:var(--green);color:#fff;border:none;font-size:12.5px;font-weight:600;cursor:pointer}
 </style>
 <div class="pwa-banner" id="pwa-banner">
   <button class="pwa-banner-close" onclick="pwaDismiss()">&times;</button>
