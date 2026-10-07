@@ -44,6 +44,14 @@ export default async function handler(req, res) {
     }
 
     const data = await response.json();
+
+    // Newer models return internal "thinking" blocks before the text.
+    // Keep only text blocks so the app always finds the answer at content[0].
+    if (Array.isArray(data.content)) {
+      const textBlocks = data.content.filter(c => c.type === 'text' && c.text);
+      if (textBlocks.length) data.content = textBlocks;
+    }
+
     return res.status(200).json(data);
 
   } catch (err) {
