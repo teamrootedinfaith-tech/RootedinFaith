@@ -1,15 +1,15 @@
-const CACHE  = 'morning-grace-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+// Rooted in Faith — service worker
+// Strategy: network-first for the app shell (so updates apply on next open),
+// cache-first for static assets, network-only for API calls.
+const CACHE = 'rootedinfaith-v2';
 
-// Install: cache core assets
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE).then(cache => cache.addAll(['/', '/manifest.json']))
   );
   self.skipWaiting();
 });
 
-// Activate: clean old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -19,29 +19,57 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch: cache-first for assets, network-first for API
 self.addEventListener('fetch', event => {
   const { request } = event;
+  if (request.method !== 'GET') return;
   const url = new URL(request.url);
 
-  // Let API calls go to the network always
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(fetch(request));
+  // API calls: network only, never cached
+  if (url.pathname.startsWith('/api/')) return;
+
+  // The app itself (any page navigation): NETWORK FIRST so members
+  // always get the latest version; cached copy only when offline.
+  if (request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE).then(cache => cache.put(request, clone));
+          return response;
+        })
+        .catch(() => caches.match(request).then(c => c || caches.match('/')))
+    );
     return;
   }
 
-  // Cache-first for everything else
+  // Book data: serve cached instantly, refresh in the background
+  if (url.pathname === '/bms-data.js') {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        const fresh = fetch(request).then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE).then(cache => cache.put(request, clone));
+          }
+          return response;
+        }).catch(() => cached);
+        return cached || fresh;
+      })
+    );
+    return;
+  }
+
+  // Everything else (icons, fonts): cache-first
   event.respondWith(
     caches.match(request).then(cached => {
       if (cached) return cached;
       return fetch(request).then(response => {
-        // Cache successful GET responses
-        if (request.method === 'GET' && response.status === 200) {
+        if (response.status === 200) {
           const clone = response.clone();
           caches.open(CACHE).then(cache => cache.put(request, clone));
         }
         return response;
       });
-    }).catch(() => caches.match('/index.html'))
+    })
   );
 });
