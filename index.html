@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,6 +73,20 @@
     .expired-body{font-size:14px;font-weight:300;color:var(--ink-2);line-height:1.7}
     .btn-renew{display:block;width:100%;padding:.85rem;border-radius:var(--r-pill);background:var(--green);border:none;font-size:13px;font-weight:600;letter-spacing:.04em;cursor:pointer;color:#fff;text-decoration:none;text-align:center}
     .expired-signout{font-size:12px;color:var(--ink-3);cursor:pointer;text-decoration:underline;text-underline-offset:2px;background:none;border:none}
+
+
+    /* ── Onboarding ── */
+    .ob-dots{display:flex;gap:6px;justify-content:center;margin-bottom:.35rem}
+    .ob-dot{width:8px;height:8px;border-radius:50%;background:var(--hair-2);transition:all .25s}
+    .ob-dot.on{background:var(--green);width:22px;border-radius:var(--r-pill)}
+    .ob-step{display:none;flex-direction:column;gap:.7rem}
+    .ob-step.active{display:flex;animation:rise .22s ease}
+    .ob-q{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;text-align:center;color:var(--ink);line-height:1.3}
+    .ob-hint{font-size:12.5px;color:var(--ink-2);text-align:center;line-height:1.55;margin-top:-4px}
+    .choice{width:100%;text-align:left;padding:1rem 1.1rem;border:1px solid var(--hair-2);border-radius:var(--r-md);background:var(--paper);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .choice h4{font-size:15px;font-weight:600;color:var(--ink)}
+    .choice p{font-size:12px;font-weight:300;color:var(--ink-2);margin-top:2px}
+    .choice.sel{border-color:var(--green);background:var(--green-wash)}
 
     /* ── App shell ── */
     .app{width:100%;height:100vh;height:100dvh;background:var(--paper);display:none;flex-direction:column;overflow:hidden}
@@ -184,6 +199,62 @@
     .toast{font-size:12px;color:var(--green);text-align:center;height:1.3rem;opacity:0;transition:opacity .3s;margin-top:.4rem;font-weight:500}
     .toast.show{opacity:1}
 
+    /* ══ LIBRARY ══ */
+    #mv-library{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:none;background:var(--sheet);padding:1.1rem 1rem calc(1.5rem + env(safe-area-inset-bottom,0px))}
+    #mv-library.active{display:block}
+    .lib-progress-card{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-md);padding:1.05rem 1.1rem;margin-bottom:1rem}
+    .lib-progress-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:.55rem}
+    .lib-progress-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600}
+    .lib-progress-count{font-size:12px;font-weight:600;color:var(--green)}
+    .lib-track{height:6px;background:var(--green-wash);border-radius:6px;overflow:hidden}
+    .lib-fill{height:100%;background:var(--green);border-radius:6px;transition:width .4s ease}
+    .lib-continue{display:flex;align-items:center;gap:12px;width:100%;background:var(--green);border:none;border-radius:var(--r-md);padding:.95rem 1.05rem;margin-bottom:1rem;cursor:pointer;text-align:left;color:#fff;-webkit-tap-highlight-color:transparent}
+    .lib-continue-text{flex:1;min-width:0}
+    .lib-continue-text h4{font-size:11px;font-weight:600;color:rgba(255,255,255,.75);letter-spacing:.03em}
+    .lib-continue-text h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:600;margin-top:2px}
+    .lib-test-h{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:600;margin:1.3rem 4px .6rem;color:var(--ink)}
+    .lib-group{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-md);overflow:hidden;margin-bottom:.7rem}
+    .lib-group-head{display:flex;align-items:center;gap:10px;width:100%;padding:.9rem 1.05rem;background:none;border:none;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+    .lib-group-head h3{flex:1;font-size:14.5px;font-weight:600;color:var(--ink)}
+    .lib-group-head p{font-size:11.5px;color:var(--ink-3);font-weight:500}
+    .lib-group-head svg{color:var(--ink-3);transition:transform .2s;flex-shrink:0}
+    .lib-group.open .lib-group-head svg{transform:rotate(180deg)}
+    .lib-books{display:none;border-top:1px solid var(--hair)}
+    .lib-group.open .lib-books{display:block}
+    .lib-book{display:flex;align-items:center;gap:11px;width:100%;padding:.8rem 1.05rem;background:none;border:none;border-bottom:1px solid var(--hair);cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+    .lib-book:last-child{border-bottom:none}
+    .lib-book-ring{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--hair-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:var(--ink-3)}
+    .lib-book-ring.done{background:var(--green);border-color:var(--green);color:#fff}
+    .lib-book h4{flex:1;font-size:14px;font-weight:500;color:var(--ink)}
+    .lib-book svg{color:var(--ink-3);flex-shrink:0}
+    /* reader */
+    #mv-reader{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;display:none;background:var(--sheet);padding:0 1rem calc(1.5rem + env(safe-area-inset-bottom,0px))}
+    #mv-reader.active{display:block}
+    .rd-back{display:inline-flex;align-items:center;gap:7px;background:none;border:none;color:var(--ink-2);font-size:13px;font-weight:500;cursor:pointer;padding:1rem 4px .4rem;-webkit-tap-highlight-color:transparent}
+    .rd-head{text-align:center;padding:.4rem 0 1.1rem}
+    .rd-kicker{font-size:11px;font-weight:600;color:var(--green);letter-spacing:.06em;text-transform:uppercase}
+    .rd-title{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;line-height:1.1;margin-top:4px}
+    .rd-figures{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:.8rem}
+    .rd-chip{background:var(--green-wash);color:var(--green);border-radius:var(--r-pill);padding:4px 11px;font-size:10.5px;font-weight:600;letter-spacing:.03em}
+    .rd-info{font-size:11.5px;color:var(--ink-3);margin-top:.7rem;line-height:1.6}
+    .rd-card{background:var(--paper);border:1px solid var(--hair);border-radius:var(--r-md);padding:1.25rem 1.15rem;margin-bottom:.8rem}
+    .rd-body{font-size:14px;font-weight:300;line-height:1.85;color:var(--ink)}
+    .rd-story{display:flex;gap:12px;padding:.9rem 0;border-bottom:1px solid var(--hair)}
+    .rd-story:first-of-type{padding-top:.1rem}.rd-story:last-child{border-bottom:none;padding-bottom:0}
+    .rd-story-num{width:26px;height:26px;border-radius:8px;background:var(--green-wash);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;flex-shrink:0;margin-top:2px}
+    .rd-story-body{flex:1;min-width:0}
+    .rd-story-body h4{font-size:14.5px;font-weight:600;color:var(--ink)}
+    .rd-story-body h5{font-size:11px;font-weight:500;color:var(--green);margin:1px 0 5px}
+    .rd-story-body p{font-size:13.5px;font-weight:300;line-height:1.75;color:var(--ink)}
+    .rd-verse{padding:.8rem 0;border-bottom:1px solid var(--hair);font-size:13.5px;font-weight:300;line-height:1.75}
+    .rd-verse:first-of-type{padding-top:0}.rd-verse:last-child{border-bottom:none;padding-bottom:0}
+    .rd-verse b{font-weight:600;color:var(--green)}
+    .rd-theme{display:flex;gap:9px;padding:.55rem 0;font-size:13.5px;font-weight:300;line-height:1.7}
+    .rd-theme::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:8px}
+    .rd-done{width:100%;padding:.85rem;border-radius:var(--r-pill);background:var(--green);border:none;font-size:12.5px;font-weight:600;letter-spacing:.03em;cursor:pointer;color:#fff;margin:.4rem 0 .6rem;-webkit-tap-highlight-color:transparent}
+    .rd-done.undone{background:var(--paper);border:1px solid var(--green);color:var(--green)}
+    .rd-pastor{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:.85rem;border-radius:var(--r-pill);background:var(--paper);border:1px solid var(--hair-2);font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink);-webkit-tap-highlight-color:transparent}
+
     /* ══ PASTOR ══ */
     .chat-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--sheet)}
     .chat-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1.1rem 1rem;display:flex;flex-direction:column;gap:.8rem}
@@ -264,6 +335,42 @@
     <div class="expired-body">Your membership is no longer active. Renew to continue — your journal and progress are saved and waiting for you.</div>
     <a class="btn-renew" href="https://rootedinfaith.co" target="_blank">Renew Membership</a>
     <button class="expired-signout" onclick="handleLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- ── First-time survey ── -->
+<div class="auth-wrap" id="onboard-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <img src="/icons/icon-192.png" alt="" style="width:46px;height:46px;border-radius:11px;margin-bottom:2px">
+      <div class="auth-logo-name" style="font-size:27px">Let's make this yours</div>
+      <div class="auth-logo-sub">Three quick questions — about 20 seconds.</div>
+    </div>
+    <div class="ob-dots"><div class="ob-dot on" id="dot-1"></div><div class="ob-dot" id="dot-2"></div><div class="ob-dot" id="dot-3"></div></div>
+
+    <div class="ob-step active" id="ob-1">
+      <div class="ob-q">What's your first name?</div>
+      <input class="auth-input" type="text" id="ob-name" placeholder="Your first name" autocomplete="given-name" style="text-align:center" />
+      <div class="auth-msg" id="ob-msg-1"></div>
+      <button class="btn-solid" onclick="obNextName()">Continue</button>
+    </div>
+
+    <div class="ob-step" id="ob-2">
+      <div class="ob-q">How long have you been walking with Christ?</div>
+      <button class="choice" onclick="obPick(this,'just beginning (under 2 years)')"><h4>Just beginning</h4><p>Exploring faith, or under 2 years in</p></button>
+      <button class="choice" onclick="obPick(this,'growing (2-10 years)')"><h4>Growing</h4><p>A few years into the journey</p></button>
+      <button class="choice" onclick="obPick(this,'deeply rooted (10+ years)')"><h4>Deeply rooted</h4><p>Walking with Him for 10+ years</p></button>
+      <button class="forgot-link" style="text-align:center" onclick="obGo(1)">Back</button>
+    </div>
+
+    <div class="ob-step" id="ob-3">
+      <div class="ob-q">What do you want to learn?</div>
+      <div class="ob-hint">Your Pastor will keep this in mind every time you talk.</div>
+      <textarea class="j-area" id="ob-goal" placeholder="e.g. How to actually understand the Old Testament, how to pray with confidence, what my purpose is&hellip;" maxlength="300" style="min-height:90px"></textarea>
+      <div class="auth-msg" id="ob-msg-3"></div>
+      <button class="btn-solid" id="ob-finish-btn" onclick="obFinish()">Start my walk</button>
+      <button class="forgot-link" style="text-align:center" onclick="obGo(2)">Back</button>
+    </div>
   </div>
 </div>
 
@@ -400,6 +507,14 @@
       </div>
     </div>
 
+    <!-- ══ LIBRARY ══ -->
+    <div class="mview" id="mv-library">
+      <div id="lib-shelf"><div class="ghost" style="margin-top:1rem"></div><div class="ghost"></div><div class="ghost s"></div></div>
+    </div>
+
+    <!-- ══ READER ══ -->
+    <div class="mview" id="mv-reader"></div>
+
     <!-- ══ PASTOR ══ -->
     <div class="mview" id="mv-pastor">
       <div class="chat-wrap">
@@ -440,6 +555,10 @@
     <button class="nav-item" id="nav-today" onclick="switchMain('today')">
       <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
       Today
+    </button>
+    <button class="nav-item" id="nav-library" onclick="switchMain('library')">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M2 6c0-1.1.9-2 2-2h7v16H4a2 2 0 01-2-2V6z" stroke="currentColor" stroke-width="1.7"/><path d="M22 6c0-1.1-.9-2-2-2h-7v16h7a2 2 0 002-2V6z" stroke="currentColor" stroke-width="1.7"/></svg>
+      Library
     </button>
     <button class="nav-item" id="nav-pastor" onclick="switchMain('pastor')">
       <svg viewBox="0 0 24 24" fill="none"><path d="M21 12a8.5 8.5 0 01-8.5 8.5c-1.3 0-2.6-.3-3.7-.8L3 21l1.3-5.8c-.5-1.1-.8-2.4-.8-3.7A8.5 8.5 0 1121 12z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -525,7 +644,7 @@ async function verifyCode(){
     const{data,error}=await sb.auth.verifyOtp({email:pendingEmail,token:code,type:'email'});
     if(error)throw error;
     currentUser=data.user;
-    showApp();
+    enterApp();
   }catch(e){
     showMsg('That code didn\'t work — check it and try again, or resend.',false,'code-msg');
   }finally{btn.disabled=false;btn.textContent='Sign In';}
@@ -545,25 +664,29 @@ async function handleLogout(){
   await sb.auth.signOut();currentUser=null;
   document.getElementById('app').classList.remove('visible');
   document.getElementById('expired-wrap').classList.remove('visible');
+  document.getElementById('onboard-wrap').classList.remove('visible');
   showAuth();
 }
 function showAuth(){setTheme('#FFFFFF');document.getElementById('auth-wrap').classList.add('visible');}
 function showExpired(){
   hideLoading();setTheme('#FFFFFF');
   document.getElementById('auth-wrap').classList.remove('visible');
+  document.getElementById('onboard-wrap').classList.remove('visible');
   document.getElementById('app').classList.remove('visible');
   document.getElementById('expired-wrap').classList.add('visible');
 }
 async function gateAndShow(){
   const active=await checkAccess(currentUser.email);
   if(!active){showExpired();return;}
-  showApp();
+  enterApp();
 }
 function showApp(){
   hideLoading();
   document.getElementById('auth-wrap').classList.remove('visible');
   document.getElementById('expired-wrap').classList.remove('visible');
+  document.getElementById('onboard-wrap').classList.remove('visible');
   document.getElementById('app').classList.add('visible');
+  loadBmsProgress();
   renderGreeting();
   switchMain('home');
   loadPrayer();renderEntries();renderChat();
@@ -609,17 +732,19 @@ function renderHomeStats(){
 }
 
 /* ── Nav ── */
-const TITLES={today:'Today',pastor:'Pastor'};
+const TITLES={today:'Today',pastor:'Pastor',library:'Library',reader:'Library'};
 function switchMain(v){
-  ['home','today','pastor'].forEach(x=>{
+  ['home','today','pastor','library','reader'].forEach(x=>{
     document.getElementById('mv-'+x).classList.toggle('active',x===v);
-    document.getElementById('nav-'+x).classList.toggle('active',x===v);
+    const nb=document.getElementById('nav-'+(x==='reader'?'library':x));
+    if(nb)nb.classList.toggle('active',x===v||(x==='library'&&v==='reader'));
   });
   const app=document.getElementById('app');
   app.classList.toggle('chrome',v!=='home');
   if(v!=='home')document.getElementById('hdr-title').textContent=TITLES[v];
   setTheme(v==='home'?'#2E5D3A':'#FFFFFF');
   if(v==='home')renderHomeStats();
+  if(v==='library')openLibrary();
   if(v==='pastor')setTimeout(()=>document.getElementById('chat-scroll').scrollTop=1e6,50);
 }
 function goToday(sub){
@@ -765,6 +890,73 @@ Important boundaries:
 - You are a companion, not a replacement for their local church, pastor, or licensed counselor. For serious matters (crisis, abuse, severe depression), gently encourage them to also reach out to their pastor, a counselor, or emergency services if in danger.
 - Stay humble — you point people to God and His Word, not to yourself.`;
 
+
+/* ── First-time survey ── */
+const obData={name:'',stage:'',goal:''};
+function enterApp(){
+  const md=(currentUser&&currentUser.user_metadata)||{};
+  if(md.onboarded){showApp();}else{showOnboarding();}
+}
+function showOnboarding(){
+  hideLoading();setTheme('#FFFFFF');
+  document.getElementById('auth-wrap').classList.remove('visible');
+  document.getElementById('expired-wrap').classList.remove('visible');
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('onboard-wrap').classList.add('visible');
+  const md=(currentUser&&currentUser.user_metadata)||{};
+  if(md.first_name)document.getElementById('ob-name').value=md.first_name;
+  obGo(1);
+}
+function obGo(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('ob-'+i).classList.toggle('active',i===n);
+    document.getElementById('dot-'+i).classList.toggle('on',i<=n);
+  });
+  if(n===1)setTimeout(()=>document.getElementById('ob-name').focus(),100);
+  if(n===3)setTimeout(()=>document.getElementById('ob-goal').focus(),100);
+}
+function obNextName(){
+  const name=document.getElementById('ob-name').value.trim();
+  if(!name){showMsg('Tell us your first name so we can greet you properly.',false,'ob-msg-1');return;}
+  obData.name=name.charAt(0).toUpperCase()+name.slice(1);
+  obGo(2);
+}
+function obPick(btn,stage){
+  document.querySelectorAll('#ob-2 .choice').forEach(c=>c.classList.remove('sel'));
+  btn.classList.add('sel');
+  obData.stage=stage;
+  setTimeout(()=>obGo(3),250);
+}
+async function obFinish(){
+  obData.goal=document.getElementById('ob-goal').value.trim();
+  const btn=document.getElementById('ob-finish-btn');
+  btn.disabled=true;btn.textContent='Setting things up\u2026';
+  try{
+    const{data,error}=await sb.auth.updateUser({data:{
+      first_name:obData.name,
+      faith_stage:obData.stage,
+      learning_goal:obData.goal,
+      onboarded:true
+    }});
+    if(error)throw error;
+    if(data&&data.user)currentUser=data.user;
+    showApp();
+  }catch(e){
+    showMsg('Could not save just now \u2014 please try again.',false,'ob-msg-3');
+  }finally{btn.disabled=false;btn.textContent='Start my walk';}
+}
+
+function pastorSystem(){
+  let s=PASTOR_SYSTEM;
+  const md=(currentUser&&currentUser.user_metadata)||{};
+  const bits=[];
+  if(md.first_name)bits.push(`Their name is ${md.first_name} \u2014 use it warmly but sparingly.`);
+  if(md.faith_stage)bits.push(`Where they are in their faith journey: ${md.faith_stage}. Meet them there \u2014 patient foundations for newer believers, richer depth for seasoned ones.`);
+  if(md.learning_goal)bits.push(`What they told us they want to learn: "${md.learning_goal}". Weave this into your guidance whenever it fits naturally.`);
+  if(bits.length)s+='\n\nAbout this member:\n- '+bits.join('\n- ');
+  return s;
+}
+
 let chatHistory=[];
 try{chatHistory=JSON.parse(localStorage.getItem(K.chat)||'[]');}catch(e){chatHistory=[];}
 
@@ -803,7 +995,7 @@ async function sendPastor(){
   try{
     const r=await fetch('/api/generate',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:chatHistory.map(m=>({role:m.role,content:m.content})),system:PASTOR_SYSTEM})
+      body:JSON.stringify({messages:chatHistory.map(m=>({role:m.role,content:m.content})),system:pastorSystem()})
     });
     const d=await r.json();
     const reply=d.content&&d.content[0]?d.content[0].text.trim():'I\'m sorry — I had trouble responding just now. Please try again.';
@@ -820,6 +1012,129 @@ function clearChat(){
   chatHistory=[];
   localStorage.removeItem(K.chat);
   renderChat();
+}
+
+/* ── Library (Bible Made Simple) ── */
+let bmsDone=new Set(), bmsLast=0, curBook=null;
+function loadBmsProgress(){
+  const md=(currentUser&&currentUser.user_metadata)||{};
+  bmsDone=new Set(Array.isArray(md.bms_done)?md.bms_done:[]);
+  bmsLast=md.bms_last||0;
+}
+async function saveBmsProgress(){
+  try{const{data}=await sb.auth.updateUser({data:{bms_done:[...bmsDone],bms_last:bmsLast}});
+  if(data&&data.user)currentUser=data.user;}catch(e){}
+}
+function loadBMS(){
+  return new Promise((resolve,reject)=>{
+    if(window.BMS_BOOKS){resolve();return;}
+    const s=document.createElement('script');
+    s.src='/bms-data.js';s.onload=resolve;s.onerror=reject;
+    document.head.appendChild(s);
+  });
+}
+async function openLibrary(){
+  try{await loadBMS();}catch(e){
+    document.getElementById('lib-shelf').innerHTML='<div class="empty-msg">Could not load the library — check your connection and try again.</div>';
+    return;
+  }
+  renderShelf();
+}
+function bmsGroups(){
+  const groups=[];
+  window.BMS_BOOKS.forEach(b=>{
+    let g=groups.find(x=>x.t===b.testament&&x.g===b.group);
+    if(!g){g={t:b.testament,g:b.group,books:[]};groups.push(g);}
+    g.books.push(b);
+  });
+  return groups;
+}
+function renderShelf(){
+  const total=window.BMS_BOOKS.length, done=bmsDone.size;
+  const pct=Math.round(done/total*100);
+  const last=window.BMS_BOOKS.find(b=>b.n===bmsLast);
+  const groups=bmsGroups();
+  let curTest='';
+  let out=`
+    <div class="lib-progress-card">
+      <div class="lib-progress-top">
+        <div class="lib-progress-title">The Bible Made Simple</div>
+        <div class="lib-progress-count">${done} of ${total} books</div>
+      </div>
+      <div class="lib-track"><div class="lib-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  if(last){
+    out+=`<button class="lib-continue" onclick="openBook(${last.n})">
+      <div class="lib-continue-text"><h4>${bmsDone.has(last.n)?'Read again':'Continue reading'}</h4><h3>${last.name}</h3></div>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>`;
+  }
+  groups.forEach((grp,gi)=>{
+    if(grp.t!==curTest){curTest=grp.t;out+=`<div class="lib-test-h">${grp.t}</div>`;}
+    const gDone=grp.books.filter(b=>bmsDone.has(b.n)).length;
+    const open=last?grp.books.some(b=>b.n===last.n):gi===0;
+    out+=`<div class="lib-group ${open?'open':''}" id="libg-${gi}">
+      <button class="lib-group-head" onclick="document.getElementById('libg-${gi}').classList.toggle('open')">
+        <h3>${grp.g}</h3><p>${gDone} / ${grp.books.length}</p>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="lib-books">`+
+      grp.books.map(b=>`<button class="lib-book" onclick="openBook(${b.n})">
+        <span class="lib-book-ring ${bmsDone.has(b.n)?'done':''}">${bmsDone.has(b.n)?'✓':b.n}</span>
+        <h4>${b.name}</h4>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>`).join('')+`</div></div>`;
+  });
+  document.getElementById('lib-shelf').innerHTML=out;
+}
+function verseHtml(v){
+  const i=v.indexOf(' – ');
+  if(i>0)return '<b>'+v.slice(0,i)+'</b> – '+v.slice(i+3);
+  return v;
+}
+function openBook(n){
+  curBook=window.BMS_BOOKS.find(b=>b.n===n);
+  if(!curBook)return;
+  bmsLast=n;saveBmsProgress();
+  const b=curBook,isDone=bmsDone.has(b.n);
+  document.getElementById('mv-reader').innerHTML=`
+    <button class="rd-back" onclick="switchMain('library')">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12l6 6M5 12l6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Library
+    </button>
+    <div class="rd-head">
+      <div class="rd-kicker">Book ${b.n} · ${b.group} · ${b.testament}</div>
+      <div class="rd-title">${b.name}</div>
+      ${b.figures.length?`<div class="rd-figures">${b.figures.map(f=>`<span class="rd-chip">${f}</span>`).join('')}</div>`:''}
+      ${b.info?`<div class="rd-info">${b.info}</div>`:''}
+    </div>
+    <div class="rd-card"><div class="tag">Summary</div><div class="rd-body">${b.summary}</div></div>
+    <div class="rd-card"><div class="tag">The story, step by step</div>
+      ${b.stories.map((s,i)=>`<div class="rd-story"><div class="rd-story-num">${i+1}</div><div class="rd-story-body"><h4>${s.t}</h4>${s.r?`<h5>${s.r}</h5>`:''}<p>${s.x}</p></div></div>`).join('')}
+    </div>
+    <div class="rd-card"><div class="tag">Key verses</div>${b.verses.map(v=>`<div class="rd-verse">${verseHtml(v)}</div>`).join('')}</div>
+    <div class="rd-card"><div class="tag">Key themes</div>${b.themes.map(t=>`<div class="rd-theme"><span>${t}</span></div>`).join('')}</div>
+    <div class="rd-card"><div class="tag">${b.jesusLabel}</div><div class="rd-body">${b.jesus}</div></div>
+    <div class="rd-card"><div class="tag">Practical application</div><div class="rd-body">${b.application}</div></div>
+    <button class="rd-done ${isDone?'undone':''}" id="rd-done-btn" onclick="toggleBookDone()">${isDone?'✓ Completed — tap to unmark':'Mark as read'}</button>
+    <button class="rd-pastor" onclick="askPastor('I just read about the book of ${b.name.replace(/'/g,"\\'")} in Bible Made Simple. ')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 12a8.5 8.5 0 01-8.5 8.5c-1.3 0-2.6-.3-3.7-.8L3 21l1.3-5.8c-.5-1.1-.8-2.4-.8-3.7A8.5 8.5 0 1121 12z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Ask the Pastor about ${b.name}
+    </button>`;
+  switchMain('reader');
+  document.getElementById('mv-reader').scrollTop=0;
+}
+function toggleBookDone(){
+  if(!curBook)return;
+  const btn=document.getElementById('rd-done-btn');
+  if(bmsDone.has(curBook.n)){
+    bmsDone.delete(curBook.n);
+    btn.className='rd-done';btn.textContent='Mark as read';
+  }else{
+    bmsDone.add(curBook.n);
+    btn.className='rd-done undone';btn.textContent='✓ Completed — tap to unmark';
+  }
+  saveBmsProgress();
 }
 
 /* ── Boot ── */
